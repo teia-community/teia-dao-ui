@@ -1,0 +1,354 @@
+/*
+ * Content styling
+ */
+
+html, body, #root, .app-container {
+    height: 100%;
+}
+
+ul {
+    margin: 0;
+    padding: 0;
+
+    @media (min-width: $S) {
+        margin: $default-margin 0 $default-margin $big-margin;
+    }
+}
+
+li {
+    list-style-type: none;
+}
+
+h1 {
+    margin: $small-margin 0.2em;
+}
+
+p {
+    max-width: $text-max-width;
+}
+
+.header-container {
+    padding: $small-padding;
+
+    @media (min-width: $S) {
+        padding: $default-padding;
+    }
+}
+
+nav {
+    ul {
+        margin: 0;
+        padding: 0;
+
+        @media (min-width: $S) {
+            margin-left: $small-padding;
+        }
+    }
+
+    li {
+        display: inline-block;
+        margin: 0 $small-margin $small-margin 0;
+    }
+
+    a {
+        display: inline-block;
+        color: $header-color;
+
+        &:hover, &:focus, &.active {
+            color: $header-color;
+            border-bottom: $default-border;
+            text-decoration: none;
+        }
+    }
+}
+
+main {
+    padding: 0 $small-padding;
+
+    @media (min-width: $S) {
+        padding: 0 $default-padding;
+    }
+}
+
+footer {
+    background-color: $footer-background-color;
+    border-top: $default-border;
+    padding: 0 $default-padding;
+
+    @media (min-width: $S) {
+        padding: 0 $big-padding;
+    }
+}
+
+button, input, .users-list a, .proposal-votes {
+    display: inline-block;
+    font-family: monospace;
+    font-size: $monospace-font-size;
+    color: $general-text-color;
+    min-width: 3em;
+    padding: $small-padding;
+    border: $default-border;
+    border-radius: $border-radius;
+}
+
+button, input[type=submit], .users-list a {
+    cursor: pointer;
+    background-color: $button-background-color;
+
+    &:hover {
+        background-color: $button-hover-background-color;
+        text-decoration: none;
+    }
+}
+
+.parameters-list > li {
+    margin: $default-margin 0;
+
+    &:last-child {
+        margin-bottom: $small-margin;
+    }
+}
+
+.users-list {
+    margin: $default-margin 0;
+
+    a {
+        word-break: break-word;
+    }
+}
+
+a.is-user {
+    background-color: $is-user-background-color;
+
+    &:hover {
+        background-color: $is-user-hover-background-color;
+    }
+}
+
+.tezos-address {
+    font-family: monospace;
+    font-size: $monospace-font-size;
+}
+
+section {
+    background-color: $section-background-color;
+    margin-bottom: $default-margin;
+    padding: $small-padding;
+    border: $default-border;
+    border-radius: $big-border-radius;
+
+    @media (min-width: $S) {
+        padding: $default-padding;
+    }
+}
+
+.proposal-list {
+    max-height: 50em;
+    overflow: auto;
+
+    & > li {
+        padding: 0.2em 0;
+
+        &:not(:last-child) {
+            border-bottom: $default-border;
+        }
+    }
+}
+
+.proposal-timestamp {
+    font-family: monospace;
+    font-size: $monospace-font-size;
+    padding: $small-padding $small-padding $small-padding 0;
+
+    @media (min-width: $S) {
+        padding: $default-padding $default-padding $default-padding 0;
+    }
+}
+
+.proposal-description {
+    min-width: 20em;
+    margin: 0;
+    padding: $small-padding;
+    border-left: $default-border;
+
+    @media (min-width: $S) {
+        padding: $default-padding;
+    }
+}
+
+.proposal-id {
+    display: inline-block;
+    font-family: monospace;
+    font-size: $monospace-font-size;
+    background-color: $proposal-id-background-color;
+    min-width: 4em;
+    padding: 0 $small-padding;
+    margin-right: $small-margin;
+    border: $default-border;
+    border-radius: $border-radius;
+    text-align: center;
+}
+
+details {
+    margin-top: $default-margin;
+
+    summary {
+        cursor: pointer;
+    }
+
+    table {
+        display: inline-block;
+        background-color: white;
+        margin: $small-margin 0 0 0;
+        padding: $default-padding;
+        border: $default-border;
+        border-radius: $border-radius;
+        overflow: hidden;
+    }
+
+    td:first-child {
+        text-align: right;
+    }
+}
+
+.proposal-extra-information {
+    padding: ($default-padding - $small-padding) 0;
+}
+
+.proposal-votes {
+    background-color: $vote-background-color;
+    text-align: center;
+}
+
+.yes-vote {
+    background-color: $yes-vote-background-color;
+}
+
+.no-vote {
+    background-color: $no-vote-background-color;
+}
+
+.abstain-vote {
+    background-color: $abstain-vote-background-color;
+}
+
+.micheline-code {
+    font-family: monospace;
+    font-size: $monospace-font-size;
+    line-height: 1.4;
+    color: $general-text-color;
+    background-color: white;
+    margin: $default-margin 0 0 0;
+    padding: $default-padding;
+    border: $default-border;
+    border-radius: $border-radius;
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+
+.form-input {
+    max-width: $form-max-width;
+
+    input {
+        margin: $small-margin 0;
+    }
+
+    textarea {
+         margin-top: $small-margin;
+    }
+}
+
+input[type=file] {
+    background-color: white;
+}
+
+input[type=number] {
+    width: 13ch;
+    text-align: right;
+}
+
+textarea {
+    width: 100%;
+    min-height: 10em;
+    resize: none;
+}
+
+@media (min-width: $S) {
+    .tezos-wallet-input {
+        width: 38ch;
+    }
+
+    .contract-address-input {
+        width: 41ch;
+    }
+}
+
+.users-input {
+    display: block;
+    margin: $default-margin 0;
+}
+
+.users-input-container {
+    display: block;
+    margin: $default-margin 0;
+    padding: $default-padding;
+    border: $default-border;
+    border-radius: $border-radius;
+}
+
+.user-input {
+    display: block;
+}
+
+.transfers-input {
+    display: block;
+    margin: $default-margin 0;
+
+    &:first-child {
+        margin-top: $small-margin;
+    }
+}
+
+.transfer-input {
+    display: block;
+    margin: $default-margin 0;
+    padding: $default-padding;
+    border: $default-border;
+    border-radius: $border-radius;
+
+    &:first-child {
+        margin-top: 0;
+    }
+
+    &:last-child {
+        margin-bottom: 0;
+    }
+}
+
+.ipfs-link {
+    font-family: monospace;
+    font-size: $monospace-font-size;
+    word-break: break-word;
+}
+
+.message-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width:100%;
+    height: 100%;
+    background-color: $message-background-color;
+}
+
+.information-message, .confirmation-message, .error-message {
+    background-color: $section-background-color;
+    min-width: 30%;
+    max-width: 80%;
+    min-height: 10em;
+    padding: $big-padding;
+    border-radius: $big-border-radius;
+
+    button {
+        float: right;
+    }
+}

@@ -1,0 +1,92 @@
+/*
+ * General layout
+ */
+
+// 1st flexbox group
+.app-container {
+    display: flex;
+    flex-direction: column;
+}
+
+main {
+    flex: 1 1 auto;
+}
+
+@media (min-width: $L) {
+    main, header {
+        width: $L;
+        margin-left: auto;
+        margin-right: auto;
+    }
+}
+
+// 2nd flexbox group
+.header-container {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: baseline;
+    row-gap: $default-gap;
+}
+
+// 3rd flexbox group
+.sync-container {
+    display: flex;
+    flex-direction: row;
+    align-items: baseline;
+    gap: $small-gap;
+}
+
+// 4th flexbox group
+.users-list {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: $small-gap;
+}
+
+// 5th flexbox group
+.proposal {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: baseline;
+}
+
+.proposal-description {
+    flex: 1 1 0;
+}
+
+// 6th flexbox group
+.proposal-extra-information {
+    display: flex;
+    flex-direction: row;
+    gap: $small-gap;
+}
+
+// 7th flexbox group
+form {
+    display: flex;
+    flex-direction: column;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    gap: $default-gap;
+
+    @media (min-width: $M) {
+        flex-direction: row;
+        align-items: flex-end;
+        justify-content: space-between;
+    }
+}
+
+.form-input {
+    flex: 1 1 auto;
+}
+
+// 8th flexbox group
+.message-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
