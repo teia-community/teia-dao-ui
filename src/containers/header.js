@@ -1,8 +1,8 @@
 import React, { useContext } from 'react';
 import { NavLink } from 'react-router-dom';
-import { DaoContext } from '../context';
-import { TezosAddressLink } from '../link';
-import { Button } from '../button';
+import { DaoContext } from './context';
+import { TezosAddressLink } from './links';
+import { Button } from './button';
 
 
 export function Header() {
@@ -38,10 +38,10 @@ export function Wallet() {
 
     return (
         <div className='sync-container'>
-            {context.activeAccount &&
-                <TezosAddressLink address={context.activeAccount.address} shorten />
+            {context.userAddress &&
+                <TezosAddressLink address={context.userAddress} shorten />
             }
-            {context.activeAccount?
+            {context.userAddress ?
                 <Button text='unsync' onClick={() => context.disconnectWallet()} /> :
                 <Button text='sync' onClick={() => context.connectWallet()} />
             }

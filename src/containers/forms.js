@@ -1,8 +1,8 @@
 import React, { useContext, useState } from 'react';
-import { DaoContext } from '../context';
-import { Button } from '../button';
-import { IpfsLink } from '../link';
-import { tokens } from '../utils';
+import { TOKENS } from '../constants';
+import { DaoContext } from './context';
+import { Button } from './button';
+import { IpfsLink } from './links';
 
 
 export function CreateProposalForms() {
@@ -10,7 +10,7 @@ export function CreateProposalForms() {
     const context = useContext(DaoContext);
 
     // Return if the user is not connected
-    if (!context.activeAccount) {
+    if (!context.userAddress) {
         return (
             <section>
                 <p>You need to sync your wallet to be able to create proposals.</p>
@@ -19,11 +19,11 @@ export function CreateProposalForms() {
     }
 
     // Return if the user doesn't have enough balance to create proposals
-    if (!(context.storage && context.storage.governance_parameters.escrow_amount <= context.userTokenBalance)) {
+    if (!(context.storage?.governance_parameters.escrow_amount <= context.userTokenBalance)) {
         return (
             <section>
                 <p>
-                    A minimum of 
+                    A minimum of
                     {' '}
                     {context.storage?.governance_parameters.escrow_amount / 1000000}
                     {' '}
@@ -43,8 +43,8 @@ export function CreateProposalForms() {
                 <p>
                     This proposal has no direct consequences on the blockchain. However, if accepted and executed,
                     it should trigger some off-chain actions by one of the Teia DAO members (e.g. change a website UI,
-                    decide on a dog name, buy bread at the bakery). The proposal description will be stored in IPFS for
-                    archival purposes.
+                    decide on a dog name, buy bread at the bakery).
+                    The proposal description will be stored in IPFS for archival purposes.
                 </p>
                 <TextProposalForm
                     handleSubmit={context.createTextProposal}
@@ -56,6 +56,7 @@ export function CreateProposalForms() {
                 <p>
                     Use this form to create a proposal that, if accepted, it will transfer
                     the specified amount of tez from the DAO treasury to a list of tezos addresses.
+                    The proposal description will be stored in IPFS for archival purposes.
                 </p>
                 <TransferTezProposalForm
                     handleSubmit={context.createTransferMutezProposal}
@@ -67,6 +68,7 @@ export function CreateProposalForms() {
                 <p>
                     Use this form to create a proposal that, if accepted, it will transfer
                     the specified amount of token editions from the DAO treasury to a list of tezos addresses.
+                    The proposal description will be stored in IPFS for archival purposes.
                 </p>
                 <TransferTokenProposalForm
                     handleSubmit={context.createTransferTokenProposal}
@@ -78,14 +80,15 @@ export function CreateProposalForms() {
                 <p>
                     Use this form to create a proposal that, if accepted, it will execute some smart contract code
                     stored in a Michelson lambda function.
+                    The proposal description will be stored in IPFS for archival purposes.
                 </p>
                 <p>
-                    This proposal could be used to administer other smart contracts of which the DAO is the admin
+                    This proposal could be used to administer other smart contracts of which the DAO is the administrator
                     (e.g. to update some smart contract fees), or to execute entry points from other contracts (e.g. swap
                     or collect a token, vote in anoter DAO / multisig).
                 </p>
                 <p className='create-proposal-warning'>
-                    Warning: Executing arbitrary smart contract code could compromise the multisig or have unexpected
+                    Warning: Executing arbitrary smart contract code could compromise the DAO or have unexpected
                     consequences. The lambda function code should have been revised by some trusted smart contract expert
                     before the proposal is accepted and executed.
                 </p>
@@ -140,7 +143,7 @@ function GeneralProposalInputs(props) {
             </label>
             {descriptionFile &&
                 <div>
-                    <Button text={props.descriptionIpfsPath? 'uploaded' : 'upload to IPFS'} onClick={handleClick} />
+                    <Button text={props.descriptionIpfsPath ? 'uploaded' : 'upload to IPFS'} onClick={handleClick} />
                     {' '}
                     {props.descriptionIpfsPath &&
                         <IpfsLink path={props.descriptionIpfsPath} />
@@ -165,7 +168,7 @@ function TextProposalForm(props) {
     return (
         <form onSubmit={handleSubmit}>
             <div className='form-input'>
-                <GeneralProposalInputs 
+                <GeneralProposalInputs
                     title={title}
                     setTitle={setTitle}
                     descriptionIpfsPath={descriptionIpfsPath}
@@ -182,7 +185,7 @@ function TransferTezProposalForm(props) {
     const [title, setTitle] = useState('');
     const [descriptionIpfsPath, setDescriptionIpfsPath] = useState(undefined);
     const [transfers, setTransfers] = useState([
-        {amount: 0, destination: ''}
+        { amount: 0, destination: '' }
     ]);
 
     // Define the on change handler
@@ -213,12 +216,12 @@ function TransferTezProposalForm(props) {
 
         // Create a new transfers array
         const newTransfers = transfers.map((transfer) => (
-            {amount: transfer.amount, destination: transfer.destination}
+            { amount: transfer.amount, destination: transfer.destination }
         ));
 
         // Add or remove a transfer from the list
         if (increase) {
-            newTransfers.push({amount: 0, destination: ''});
+            newTransfers.push({ amount: 0, destination: '' });
         } else if (newTransfers.length > 1) {
             newTransfers.pop();
         }
@@ -243,7 +246,7 @@ function TransferTezProposalForm(props) {
     return (
         <form onSubmit={handleSubmit}>
             <div className='form-input'>
-                <GeneralProposalInputs 
+                <GeneralProposalInputs
                     title={title}
                     setTitle={setTitle}
                     descriptionIpfsPath={descriptionIpfsPath}
@@ -252,7 +255,7 @@ function TransferTezProposalForm(props) {
                 <br />
                 <div className='transfers-input'>
                     {transfers.map((transfer, index) => (
-                        <div key={index}  className='transfer-input'>
+                        <div key={index} className='transfer-input'>
                             <label>Amount to transfer (ꜩ):
                                 {' '}
                                 <input
@@ -295,7 +298,7 @@ function TransferTokenProposalForm(props) {
     const [tokenContract, setTokenContract] = useState('');
     const [tokenId, setTokenId] = useState('');
     const [transfers, setTransfers] = useState([
-        {amount: 0, destination: ''}
+        { amount: 0, destination: '' }
     ]);
 
     // Define the on change handler
@@ -326,12 +329,12 @@ function TransferTokenProposalForm(props) {
 
         // Create a new transfers array
         const newTransfers = transfers.map((transfer) => (
-            {amount: transfer.amount, destination: transfer.destination}
+            { amount: transfer.amount, destination: transfer.destination }
         ));
 
         // Add or remove a transfer from the list
         if (increase) {
-            newTransfers.push({amount: 0, destination: ''});
+            newTransfers.push({ amount: 0, destination: '' });
         } else if (newTransfers.length > 1) {
             newTransfers.pop();
         }
@@ -349,7 +352,7 @@ function TransferTokenProposalForm(props) {
     return (
         <form onSubmit={handleSubmit}>
             <div className='form-input'>
-                <GeneralProposalInputs 
+                <GeneralProposalInputs
                     title={title}
                     setTitle={setTitle}
                     descriptionIpfsPath={descriptionIpfsPath}
@@ -371,7 +374,7 @@ function TransferTokenProposalForm(props) {
                     />
                     <datalist id='tokenContracts'>
                         <option value=''></option>
-                        {tokens.map((token) => (
+                        {TOKENS.map((token) => (
                             <option key={token.fa2} value={token.fa2}>{token.name}</option>
                         ))}
                     </datalist>
@@ -390,7 +393,7 @@ function TransferTokenProposalForm(props) {
                 <br />
                 <div className='transfers-input'>
                     {transfers.map((transfer, index) => (
-                        <div key={index}  className='transfer-input'>
+                        <div key={index} className='transfer-input'>
                             <label>Token editions:
                                 {' '}
                                 <input
@@ -446,7 +449,7 @@ function LambdaFunctionProposalForm(props) {
     return (
         <form onSubmit={handleSubmit}>
             <div className='form-input'>
-                <GeneralProposalInputs 
+                <GeneralProposalInputs
                     title={title}
                     setTitle={setTitle}
                     descriptionIpfsPath={descriptionIpfsPath}

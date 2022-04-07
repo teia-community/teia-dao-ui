@@ -1,5 +1,13 @@
 
-export const tokens = [
+export const NETWORK = 'ithacanet';
+
+export const DAO_CONTRACT_ADDRESS = 'KT1SpmiaEkwEg9Q7wsb8G6noEpM5xcRozror';
+
+export const RPC_NODE = 'https://ithacanet.ecadinfra.com';
+
+export const IPFS_CLIENT = 'https://ipfs.infura.io:5001/api/v0';
+
+export const TOKENS = [
     {
         name: 'Teia DAO tokens',
         fa2: 'KT1PA5vDBff1Tg7sSe8Xehmz3RbknWA4NJTX',
@@ -67,11 +75,3 @@ export const tokens = [
         website: 'https://objkt.com/asset/ziggurats/'
     }
 ]
-
-export function stringToHex(str) {
-    return Array.from(str).reduce((hex, c) => hex += c.charCodeAt(0).toString(16).padStart(2, '0'), '');
-}
-
-export function hexToString(hex) {
-    return hex.match(/.{1,2}/g).reduce((acc, char) => acc + String.fromCharCode(parseInt(char, 16)), '');
-}

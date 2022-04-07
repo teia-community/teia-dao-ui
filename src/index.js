@@ -1,6 +1,6 @@
 import React from 'react';
 import { createRoot } from 'react-dom/client';
-import { BrowserRouter, Routes, Route} from 'react-router-dom';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { App, DaoParameters, DaoProposals, CreateProposals, NotFound } from './App';
 import reportWebVitals from './reportWebVitals';
 import './styles/index.scss';
