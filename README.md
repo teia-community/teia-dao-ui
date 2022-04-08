@@ -7,7 +7,7 @@ A basic react app to interact with the Teia Community [DAO smart contract](hhttp
 This should work with Node.js v16.14.2:
 
 ```bash
-cd multisign-app
+cd teia-dao-ui
 npm install
 npm start
 ```
