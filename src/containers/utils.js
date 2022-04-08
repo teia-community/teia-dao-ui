@@ -60,6 +60,40 @@ export async function getTokenBalance(token, tokenId, account, network = NETWORK
     return response?.data[0];
 }
 
+// Returns the user DAO votes
+export async function getUserVotes(userAddress, token_votes_bigmap, network = NETWORK) {
+    // Download the user votes from the token votes bigmap
+    const extra_parameters = { 'key.address': userAddress };
+    const votes = await getBigmapKeys(token_votes_bigmap, extra_parameters, network);
+
+    // Rearange the user votes information in a dictionary
+    const userVotes = votes ? {} : undefined;
+    votes?.forEach(vote => userVotes[vote.key.nat] = vote.value);
+
+    return userVotes;
+}
+
+// Returns the user community
+export async function getUserCommunity(userAddress, representativesAddress, network = NETWORK) {
+    // Get the Community representatives contract storage
+    const storage = await getContractStorage(representativesAddress, network);
+
+    return storage?.representatives[userAddress];
+}
+
+// Returns the community DAO votes
+export async function getCommunityVotes(community, representatives_votes_bigmap, network = NETWORK) {
+    // Download the community votes from the representatives votes bigmap
+    const extra_parameters = { 'key.community': community };
+    const votes = await getBigmapKeys(representatives_votes_bigmap, extra_parameters, network);
+
+    // Rearange the community votes information in a dictionary
+    const communityVotes = votes ? {} : undefined;
+    votes?.forEach(vote => communityVotes[vote.key.nat] = vote.value);
+
+    return communityVotes;
+}
+
 // Transforms a string to hex bytes
 export function stringToHex(str) {
     return Array.from(str).reduce((hex, c) => hex += c.charCodeAt(0).toString(16).padStart(2, '0'), '');

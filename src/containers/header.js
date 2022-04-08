@@ -34,16 +34,16 @@ export function Navigation() {
 
 export function Wallet() {
     // Get the DAO context
-    const context = useContext(DaoContext);
+    const { userAddress, connectWallet, disconnectWallet } = useContext(DaoContext);
 
     return (
         <div className='sync-container'>
-            {context.userAddress &&
-                <TezosAddressLink address={context.userAddress} shorten />
+            {userAddress &&
+                <TezosAddressLink address={userAddress} shorten />
             }
-            {context.userAddress ?
-                <Button text='unsync' onClick={() => context.disconnectWallet()} /> :
-                <Button text='sync' onClick={() => context.connectWallet()} />
+            {userAddress ?
+                <Button text='unsync' onClick={() => disconnectWallet()} /> :
+                <Button text='sync' onClick={() => connectWallet()} />
             }
         </div>
     );

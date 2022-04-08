@@ -102,7 +102,7 @@ export function CreateProposalForms() {
 
 function GeneralProposalInputs(props) {
     // Get the DAO context
-    const context = useContext(DaoContext);
+    const { uploadFileToIpfs } = useContext(DaoContext);
 
     // Set the component state
     const [descriptionFile, setDescriptionFile] = useState(undefined);
@@ -118,7 +118,7 @@ function GeneralProposalInputs(props) {
         e.preventDefault();
 
         // Update the component state
-        props.setDescriptionIpfsPath(await context.uploadFileToIpfs(descriptionFile, true));
+        props.setDescriptionIpfsPath(await uploadFileToIpfs(descriptionFile, true));
     };
 
     return (

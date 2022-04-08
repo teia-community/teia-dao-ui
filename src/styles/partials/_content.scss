@@ -168,11 +168,15 @@ section {
 .proposal-description {
     min-width: 20em;
     margin: 0;
-    padding: $small-padding;
+    padding: 0 $small-padding;
     border-left: $default-border;
 
+    & > p {
+        margin: $small-margin 0;
+    }
+
     @media (min-width: $S) {
-        padding: $default-padding;
+        padding: 0 $default-padding;
     }
 }
 
@@ -189,9 +193,12 @@ section {
     text-align: center;
 }
 
-details {
-    margin-top: $default-margin;
+.proposal-title {
+    font-weight: bold;
+    color: $proposal-title-color;
+}
 
+details {
     summary {
         cursor: pointer;
     }
@@ -218,6 +225,10 @@ details {
 .proposal-votes {
     background-color: $vote-background-color;
     text-align: center;
+    
+    &:empty:before {
+        content: '\200b';
+    }
 }
 
 .yes-vote {
@@ -238,7 +249,7 @@ details {
     line-height: 1.4;
     color: $general-text-color;
     background-color: white;
-    margin: $default-margin 0 0 0;
+    margin: $default-margin 0;
     padding: $default-padding;
     border: $default-border;
     border-radius: $border-radius;

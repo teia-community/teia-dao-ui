@@ -1,6 +1,5 @@
-import React, { useContext } from 'react';
-import { TOKENS } from '../constants';
-import { DaoContext } from './context';
+import React from 'react';
+import { NETWORK, IPFS_GATEWAY, TOKENS } from '../constants';
 
 
 export function DefaultLink(props) {
@@ -12,11 +11,8 @@ export function DefaultLink(props) {
 }
 
 export function TzktLink(props) {
-    // Get the DAO context
-    const context = useContext(DaoContext);
-
     return (
-        <DefaultLink href={`https://${context.network}.tzkt.io/${props.address}`} className={props.className ? props.className : ''}>
+        <DefaultLink href={`https://${NETWORK}.tzkt.io/${props.address}`} className={props.className ? props.className : ''}>
             {props.children}
         </DefaultLink>
     );
@@ -50,7 +46,7 @@ export function TokenLink(props) {
 
 export function IpfsLink(props) {
     return (
-        <DefaultLink href={`https://infura-ipfs.io/ipfs/${props.path}`} className={`ipfs-link ${props.className ? props.className : ''}`}>
+        <DefaultLink href={IPFS_GATEWAY + props.path} className={`ipfs-link ${props.className ? props.className : ''}`}>
             {props.children ? props.children : props.path}
         </DefaultLink>
     );

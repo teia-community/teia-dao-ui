@@ -7,6 +7,8 @@ export const RPC_NODE = 'https://ithacanet.ecadinfra.com';
 
 export const IPFS_CLIENT = 'https://ipfs.infura.io:5001/api/v0';
 
+export const IPFS_GATEWAY = 'https://infura-ipfs.io/ipfs/';
+
 export const TOKENS = [
     {
         name: 'Teia DAO tokens',

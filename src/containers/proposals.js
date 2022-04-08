@@ -9,99 +9,125 @@ import { hexToString } from './utils';
 
 
 export function Proposals() {
-    // Get the DAO context
-    const context = useContext(DaoContext);
+    // Get the required DAO context information
+    const { storage, proposals, userVotes } = useContext(DaoContext);
 
     // Separate the proposals depending of their current status
-    const openProposals = [];
-    const closedProposals = [];
-    const approvedProposals = [];
+    const toVoteProposals = [];
+    const votedProposals = [];
+    const pendingEvaluationProposals = [];
+    const waitingProposals = [];
+    const toExecuteProposals = [];
     const executedProposals = [];
     const rejectedProposals = [];
     const cancelledProposals = [];
 
-    if (context.proposals && context.storage) {
-        // Get the vote period parameter from the storage
-        const votePeriod = parseInt(context.storage.governance_parameters.vote_period);
+    if (storage && proposals) {
+        // Get the vote and wait period parameters from the storage
+        const votePeriod = parseInt(storage.governance_parameters.vote_period);
+        const waitPeriod = parseInt(storage.governance_parameters.wait_period);
 
         // Loop over the complete list of proposals
         const now = new Date();
 
-        for (const proposal of context.proposals) {
-            // Check if the proposal status is approved
-            if (proposal.value.status.approved) {
-                approvedProposals.push(proposal);
-                continue;
-            }
+        for (const proposal of proposals) {
+            if (proposal.value.status.open) {
+                // Check if the proposal voting period has expired
+                const voteExpirationTime = new Date(proposal.value.timestamp);
+                voteExpirationTime.setDate(voteExpirationTime.getDate() + votePeriod);
 
-            // Check if the proposal status is executed
-            if (proposal.value.status.executed) {
+                if (now > voteExpirationTime) {
+                    pendingEvaluationProposals.push(proposal);
+                } else if (userVotes && userVotes[proposal.key]) {
+                    votedProposals.push(proposal);
+                } else {
+                    toVoteProposals.push(proposal);
+                }
+            } else if (proposal.value.status.approved) {
+                // Check if the proposal waiting period has passed or not
+                const waitExpirationTime = new Date(proposal.value.timestamp);
+                waitExpirationTime.setDate(waitExpirationTime.getDate() + votePeriod + waitPeriod);
+
+                if (now > waitExpirationTime) {
+                    toExecuteProposals.push(proposal);
+                } else {
+                    waitingProposals.push(proposal);
+                }
+            } else if (proposal.value.status.executed) {
                 executedProposals.push(proposal);
-                continue;
-            }
-
-            // Check if the proposal status is rejected
-            if (proposal.value.status.rejected) {
+            } else if (proposal.value.status.rejected) {
                 rejectedProposals.push(proposal);
-                continue;
-            }
-
-            // Check if the proposal status is cancelled
-            if (proposal.value.status.cancelled) {
+            } else if (proposal.value.status.cancelled) {
                 cancelledProposals.push(proposal);
-                continue;
             }
-
-            // Check if the proposal voting period has expired
-            const expirationDate = new Date(proposal.value.timestamp);
-            expirationDate.setDate(expirationDate.getDate() + votePeriod);
-
-            if (now > expirationDate) {
-                closedProposals.push(proposal);
-                continue;
-            }
-
-            // The proposal is still open
-            openProposals.push(proposal);
         }
-    }
-
-    // Check if the user can vote
-    var userCanVote = false;
-
-    if (context.userTokenBalance && context.storage) {
-        userCanVote = context.userTokenBalance > parseInt(context.storage.governance_parameters.min_amount);
     }
 
     return (
         <>
             <section>
                 <h2>Proposals to vote</h2>
-                <ProposalList proposals={openProposals} canVote={userCanVote} />
+                <p>
+                    These proposals are still in the voting phase and you didn't vote for them yet.
+                </p>
+                <ProposalList proposals={toVoteProposals} canVote canCancel />
             </section>
 
             <section>
-                <h2>Proposals pending result evaluatiaton</h2>
-                <ProposalList proposals={closedProposals} />
+                <h2>Already voted proposals</h2>
+                <p>
+                    These proposals are still in the voting phase, but you already voted them.
+                </p>
+                <ProposalList proposals={votedProposals} canCancel />
             </section>
 
             <section>
-                <h2>Proposals that can be executed</h2>
-                <ProposalList proposals={approvedProposals} />
+                <h2>Proposals pending votes results evaluation</h2>
+                <p>
+                    The voting period for these proposals has finished.
+                    You can evaluate their result to see if they are approved or rejected.
+                </p>
+                <ProposalList proposals={pendingEvaluationProposals} canEvaluate canCancel />
+            </section>
+
+            <section>
+                <h2>Approved proposals</h2>
+                <p>
+                    These are approved proposals that are still in the waiting phase.
+                </p>
+                <ProposalList proposals={waitingProposals} canCancel />
+            </section>
+
+            <section>
+                <h2>Proposals to execute</h2>
+                <p>
+                    These are approved proposals that can be exectuded.
+                </p>
+                <ProposalList proposals={toExecuteProposals} canExecute canCancel />
             </section>
 
             <section>
                 <h2>Executed proposals</h2>
+                <p>
+                    These proposals have been executed already.
+                </p>
                 <ProposalList proposals={executedProposals} />
             </section>
 
             <section>
                 <h2>Rejected proposals</h2>
+                <p>
+                    These proposals didn't reach the required quorum and/or supermajority.
+                    As a result, they were rejected by the DAO.
+                </p>
                 <ProposalList proposals={rejectedProposals} />
             </section>
 
             <section>
                 <h2>Cancelled proposals</h2>
+                <p>
+                    These proposals were cancelled by the proposal issuer or the DAO guardians.
+                </p>
                 <ProposalList proposals={cancelledProposals} />
             </section>
         </>
@@ -109,12 +135,6 @@ export function Proposals() {
 }
 
 function ProposalList(props) {
-    // Get the DAO context
-    const context = useContext(DaoContext);
-
-    // Get the minimum votes parameter from the storage
-    const minimumVotes = parseInt(context.storage?.minimum_votes);
-
     return (
         <ul className='proposal-list'>
             {props.proposals.map((proposal) => (
@@ -122,9 +142,10 @@ function ProposalList(props) {
                     <Proposal
                         proposalId={proposal.key}
                         proposal={proposal.value}
-                        vote={context.userVotes ? context.userVotes[proposal.key] : undefined}
-                        voteProposal={props.canVote ? context.voteProposal : undefined}
-                        executeProposal={(props.canVote && proposal.value.positive_votes >= minimumVotes) ? context.executeProposal : undefined}
+                        canVote={props.canVote}
+                        canCancel={props.canCancel}
+                        canEvaluate={props.canEvaluate}
+                        canExecute={props.canExecute}
                     />
                 </li>
             ))}
@@ -141,9 +162,11 @@ function Proposal(props) {
                 proposal={props.proposal} />
             <ProposalExtraInformation
                 id={props.proposalId}
-                vote={props.vote?.vote}
-                voteProposal={props.voteProposal}
-                executeProposal={props.executeProposal}
+                proposal={props.proposal}
+                canVote={props.canVote}
+                canCancel={props.canCancel}
+                canEvaluate={props.canEvaluate}
+                canExecute={props.canExecute}
             />
         </div>
     );
@@ -158,17 +181,10 @@ function ProposalTimestamp(props) {
 function ProposalDescription(props) {
     return (
         <div className='proposal-description'>
-            <ProposalId id={props.id} />
-            <ProposalDescriptionIntro proposal={props.proposal} />
+            <ProposalDescriptionIntro id={props.id} proposal={props.proposal} />
             {' '}
             <ProposalDescriptionContent proposal={props.proposal} />
         </div>
-    );
-}
-
-function ProposalId(props) {
-    return (
-        <span className='proposal-id'>#{props.id}</span>
     );
 }
 
@@ -176,7 +192,8 @@ function ProposalDescriptionIntro(props) {
     return (
         <>
             <p>
-                Title: {hexToString(props.proposal.title)}
+                <span className='proposal-id'>#{props.id}</span>
+                <span className='proposal-title'>{hexToString(props.proposal.title)}</span>
             </p>
             <p>
                 Issuer: <TezosAddressLink address={props.proposal.issuer} useAlias shorten />
@@ -193,15 +210,13 @@ function ProposalDescriptionContent(props) {
     const proposal = props.proposal;
     const kind = proposal.kind;
 
-    if (kind.hasOwnProperty('text')) {
+    if (kind.text) {
         return (
-            <span>
+            <p>
                 Effect: Approves a <IpfsLink path={hexToString(proposal.description).split('/')[2]}>text proposal</IpfsLink>.
-            </span>
+            </p>
         );
-    }
-
-    if (kind.hasOwnProperty('transfer_mutez')) {
+    } else if (kind.transfer_mutez) {
         // Extract the transfers information
         const transfers = proposal.kind.transfer_mutez;
         const nTransfers = transfers.length;
@@ -209,16 +224,16 @@ function ProposalDescriptionContent(props) {
 
         if (nTransfers === 1) {
             return (
-                <span>
+                <p>
                     Effect: Transfers {transfers[0].amount / 1000000} ꜩ to <TezosAddressLink address={transfers[0].destination} useAlias shorten />.
-                </span>
+                </p>
             );
         } else {
             return (
                 <>
-                    <span>
+                    <p>
                         Effect: Transfers {totalAmount / 1000000} ꜩ.
-                    </span>
+                    </p>
                     <details>
                         <summary>See transfer details</summary>
                         <table>
@@ -239,9 +254,7 @@ function ProposalDescriptionContent(props) {
                 </>
             );
         }
-    }
-
-    if (kind.hasOwnProperty('transfer_token')) {
+    } else if (kind.transfer_token) {
         // Extract the transfers information
         const fa2 = proposal.kind.transfer_token.fa2;
         const tokenId = proposal.kind.transfer_token.token_id;
@@ -252,7 +265,7 @@ function ProposalDescriptionContent(props) {
 
         if (nTransfers === 1) {
             return (
-                <span>
+                <p>
                     Effect: Transfers {transfers[0].amount}
                     {' '}
                     {token?.multiasset ? `edition${transfers[0].amount > 1 ? 's' : ''} of token` : ''}
@@ -262,12 +275,12 @@ function ProposalDescriptionContent(props) {
                     </TokenLink>
                     {' '}
                     to <TezosAddressLink address={transfers[0].destination} useAlias shorten />.
-                </span>
+                </p>
             );
         } else {
             return (
                 <>
-                    <span>
+                    <p>
                         Effect: Transfers {nEditions}
                         {' '}
                         {token?.multiasset ? 'editions of token' : ''}
@@ -275,7 +288,7 @@ function ProposalDescriptionContent(props) {
                         <TokenLink fa2={fa2} id={tokenId}>
                             {token ? (token.multiasset ? '#' + tokenId : token.name) : 'tokens'}
                         </TokenLink>.
-                    </span>
+                    </p>
                     <details>
                         <summary>See transfer details</summary>
                         <table>
@@ -298,9 +311,7 @@ function ProposalDescriptionContent(props) {
                 </>
             );
         }
-    }
-
-    if (kind.hasOwnProperty('lambda_function')) {
+    } else {
         // Transform the lambda function Michelson JSON code to Micheline code
         const parser = new Parser();
         const michelsonCode = parser.parseJSON(JSON.parse(proposal.kind.lambda_function));
@@ -314,9 +325,9 @@ function ProposalDescriptionContent(props) {
 
         return (
             <>
-                <span>
+                <p>
                     Effect: Executes a lambda function.
-                </span>
+                </p>
                 <details>
                     <summary>See Micheline code</summary>
                     <pre className='micheline-code'>
@@ -326,36 +337,57 @@ function ProposalDescriptionContent(props) {
             </>
         );
     }
-
-    return null;
 }
 
 function ProposalExtraInformation(props) {
-    // Get the vote class name
+    // Get the DAO context
+    const context = useContext(DaoContext);
+
+    // Check if the user is a DAO member
+    const isMember = context.userTokenBalance > 0;
+
+    // Check if the user is the proposal issuer
+    const isProposalIssuer = props.proposal.issuer === context.userAddress;
+
+    // Check if the user can vote proposals
+    const userCanVote = context.userTokenBalance > context.storage.governance_parameters.min_amount;
+
+    // Get the user vote and the vote class name
+    const userVote = context.userVotes && context.userVotes[props.id]?.vote;
     let voteClassName = '';
 
-    if (props.vote !== undefined) {
-        voteClassName = props.vote.yes ? ' yes-vote' : (props.vote.no ? ' no-vote' : ' abstain-vote');
+    if (userVote) {
+        voteClassName = userVote.yes ? ' yes-vote' : (userVote.no ? ' no-vote' : ' abstain-vote');
     }
 
     return (
         <div className='proposal-extra-information'>
-            {props.executeProposal &&
-                <Button text='execute' onClick={() => props.executeProposal(props.id)} />
+            {isProposalIssuer && props.canCancel &&
+                <Button text='cancel' onClick={() => context.cancelProposal(props.id, true)} />
             }
 
-            <span className={'proposal-votes' + voteClassName} />
-
-            {props.voteProposal &&
-                <Button text='YES' onClick={() => props.voteProposal(props.id, 'yes')} />
+            {userCanVote && props.canVote &&
+                <Button text='yes' onClick={() => context.voteProposal(props.id, 'yes')} />
             }
 
-            {props.voteProposal &&
-                <Button text='NO' onClick={() => props.voteProposal(props.id, 'no')} />
+            {userCanVote && props.canVote &&
+                <Button text='no' onClick={() => context.voteProposal(props.id, 'no')} />
             }
 
-            {props.voteProposal &&
-                <Button text='ABSTAIN' onClick={() => props.voteProposal(props.id, 'abstain')} />
+            {userCanVote && props.canVote &&
+                <Button text='abstain' onClick={() => context.voteProposal(props.id, 'abstain')} />
+            }
+
+            {isMember && props.canEvaluate &&
+                <Button text='evaluate' onClick={() => context.evaluateVotingResult(props.id)} />
+            }
+
+            {isMember && props.canExecute &&
+                <Button text='execute' onClick={() => context.executeProposal(props.id)} />
+            }
+
+            {isMember &&
+                <span className={'proposal-votes' + voteClassName} />
             }
         </div>
     );
