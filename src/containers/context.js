@@ -44,6 +44,9 @@ export class DaoContextProvider extends React.Component {
             // The DAO treasury balance in mutez
             balance: undefined,
 
+            // The DAO treasury DAO token balance
+            tokenBalance: undefined,
+
             // The DAO proposals
             proposals: undefined,
 
@@ -61,6 +64,9 @@ export class DaoContextProvider extends React.Component {
 
             // The DAO governance contract reference
             contract: undefined,
+
+            // The DAO Token contract reference
+            tokenContract: undefined,
 
             // The information message
             informationMessage: undefined,
@@ -86,17 +92,32 @@ export class DaoContextProvider extends React.Component {
                 errorMessage: message
             }),
 
-            // Returns the DAO contract reference
+            // Returns the DAO governance contract reference
             getContract: async () => {
                 if (this.state.contract) {
                     return this.state.contract;
                 }
 
-                console.log('Accessing the DAO contract...');
+                console.log('Accessing the DAO governance contract...');
                 const contract = await utils.getContract(tezos, DAO_CONTRACT_ADDRESS);
                 this.setState({ contract: contract });
 
                 return contract;
+            },
+
+            // Returns the DAO token contract reference
+            getTokenContract: async () => {
+                if (this.state.tokenContract) {
+                    return this.state.tokenContract;
+                }
+
+                if (!this.state.storage) return undefined;
+
+                console.log('Accessing the DAO token contract...');
+                const tokenContract = await utils.getContract(tezos, this.state.storage.token);
+                this.setState({ tokenContract: tokenContract });
+
+                return tokenContract;
             },
 
             // Connects the user wallet
@@ -164,13 +185,14 @@ export class DaoContextProvider extends React.Component {
                 this.state.setInformationMessage(undefined);
             },
 
-            // Creates a text proposal
-            createTextProposal: async (title, descriptionIpfsPath) => {
-                // Get the DAO contract reference
+            // Creates a DAO proposal
+            createProposal: async (title, descriptionIpfsPath, kind) => {
+                // Get the DAO governance and DAO token contract references
                 const contract = await this.state.getContract();
+                const tokenContract = await this.state.getTokenContract();
 
-                // Return if the DAO contract reference is not available
-                if (!contract) return;
+                // Return if one of the contract references is not available
+                if (!contract || !tokenContract) return;
 
                 // Check that the description IPFS path is not undefined
                 if (!descriptionIpfsPath) {
@@ -178,36 +200,61 @@ export class DaoContextProvider extends React.Component {
                     return;
                 }
 
-                // Send the create text proposal operation
-                console.log('Sending the create text proposal operation...');
+                // Initialize the batch operation
+                let batch = tezos.wallet.batch();
+
+                // Add the token operator
+                const operator = {
+                    owner: this.state.userAddress,
+                    operator: DAO_CONTRACT_ADDRESS,
+                    token_id: 0
+                };
+                batch = batch.withContractCall(
+                    tokenContract.methods.update_operators([{ add_operator: operator }])
+                );
+
+                // Add the create proposal operation
                 const parameters = {
                     title: utils.stringToHex(title),
                     description: utils.stringToHex('ipfs://' + descriptionIpfsPath),
-                    kind: { text: [['unit']] }
+                    kind: kind
                 };
-                const operation = await contract.methodsObject.create_proposal(parameters).send()
-                    .catch(error => console.log('Error while sending the create text proposal operation:', error));
+                batch = batch.withContractCall(
+                    contract.methodsObject.create_proposal(parameters)
+                );
+
+                // Remove the token operator
+                batch = batch.withContractCall(
+                    tokenContract.methods.update_operators([{ remove_operator: operator }])
+                );
+
+                // Send the batch operation
+                console.log('Sending the create proposal operation...');
+                const operation = await batch.send()
+                    .catch(error => console.log('Error while sending the create proposal operation:', error));
 
                 // Wait for the confirmation
                 await this.state.confirmOperation(operation);
 
                 // Update the proposals and the user token balance
-                const proposals = await utils.getBigmapKeys(this.state.storage.proposals);
-                const userTokenBalance = await utils.getTokenBalance(this.state.storage.token, 0, this.state.userAddress);
+                const storage = this.state.storage;
+                const proposals = await utils.getBigmapKeys(storage.proposals);
+                const userTokenBalance = await utils.getTokenBalance(storage.token, 0, this.state.userAddress);
                 this.setState({
                     proposals: proposals,
                     userTokenBalance: userTokenBalance
                 });
             },
 
+            // Creates a text proposal
+            createTextProposal: async (title, descriptionIpfsPath) => {
+                // Create the text proposal
+                const kind = { text: [['unit']] };
+                this.state.createProposal(title, descriptionIpfsPath, kind);
+            },
+
             // Creates a transfer mutez proposal
             createTransferMutezProposal: async (title, descriptionIpfsPath, transfers) => {
-                // Get the DAO contract reference
-                const contract = await this.state.getContract();
-
-                // Return if the DAO contract reference is not available
-                if (!contract) return;
-
                 // Loop over the transfers information
                 let totalAmount = 0;
 
@@ -229,39 +276,16 @@ export class DaoContextProvider extends React.Component {
                     return;
                 }
 
-                // Send the create transfer mutez proposal operation
-                console.log('Sending the create transfer mutez proposal operation...');
-                const parameters = {
-                    title: utils.stringToHex(title),
-                    description: utils.stringToHex('ipfs://' + descriptionIpfsPath),
-                    kind: { transfer_mutez: transfers }
-                };
-                const operation = await contract.methodsObject.create_proposal(parameters).send()
-                    .catch(error => console.log('Error while sending the create trasfer mutez proposal operation:', error));
-
-                // Wait for the confirmation
-                await this.state.confirmOperation(operation);
-
-                // Update the proposals and the user token balance
-                const proposals = await utils.getBigmapKeys(this.state.storage.proposals);
-                const userTokenBalance = await utils.getTokenBalance(this.state.storage.token, 0, this.state.userAddress);
-                this.setState({
-                    proposals: proposals,
-                    userTokenBalance: userTokenBalance
-                });
+                // Create the transfer mutez proposal
+                const kind = { transfer_mutez: transfers };
+                this.state.createProposal(title, descriptionIpfsPath, kind);
             },
 
             // Creates a transfer token proposal
-            createTransferTokenProposal: async (title, descriptionIpfsPath, tokenContract, tokenId, transfers) => {
-                // Get the DAO contract reference
-                const contract = await this.state.getContract();
-
-                // Return if the DAO contract reference is not available
-                if (!contract) return;
-
+            createTransferTokenProposal: async (title, descriptionIpfsPath, tokenAddress, tokenId, transfers) => {
                 // Check that the token contract address is a valid address
-                if (!(tokenContract && validateAddress(tokenContract) === 3)) {
-                    this.state.setErrorMessage(`The provided token contract address is not a valid tezos address: ${tokenContract}`);
+                if (!(tokenAddress && validateAddress(tokenAddress) === 3)) {
+                    this.state.setErrorMessage(`The provided token contract address is not a valid tezos address: ${tokenAddress}`);
                     return;
                 }
 
@@ -276,42 +300,19 @@ export class DaoContextProvider extends React.Component {
                     }
                 }
 
-                // Send the create transfer token proposal operation
-                console.log('Sending the create transfer token proposal operation...');
-                const parameters = {
-                    title: utils.stringToHex(title),
-                    description: utils.stringToHex('ipfs://' + descriptionIpfsPath),
-                    kind: {
-                        transfer_token: {
-                            fa2: tokenContract,
-                            token_id: tokenId,
-                            distribution: transfers
-                        }
+                // Create the transfer token proposal
+                const kind = {
+                    transfer_token: {
+                        fa2: tokenAddress,
+                        token_id: tokenId,
+                        distribution: transfers
                     }
                 };
-                const operation = await contract.methodsObject.create_proposal(parameters).send()
-                    .catch(error => console.log('Error while sending the create trasfer token proposal operation:', error));
-
-                // Wait for the confirmation
-                await this.state.confirmOperation(operation);
-
-                // Update the proposals and the user token balance
-                const proposals = await utils.getBigmapKeys(this.state.storage.proposals);
-                const userTokenBalance = await utils.getTokenBalance(this.state.storage.token, 0, this.state.userAddress);
-                this.setState({
-                    proposals: proposals,
-                    userTokenBalance: userTokenBalance
-                });
+                this.state.createProposal(title, descriptionIpfsPath, kind);
             },
 
             // Creates a lambda function proposal
             createLambdaFunctionProposal: async (title, descriptionIpfsPath, michelineCode) => {
-                // Get the DAO contract reference
-                const contract = await this.state.getContract();
-
-                // Return if the DAO contract reference is not available
-                if (!contract) return;
-
                 // Try to get the lambda function from the Micheline code
                 let lambdaFunction;
 
@@ -323,26 +324,9 @@ export class DaoContextProvider extends React.Component {
                     return;
                 }
 
-                // Send the create lambda function proposal operation
-                console.log('Sending the create lambda function proposal operation...');
-                const parameters = {
-                    title: utils.stringToHex(title),
-                    description: utils.stringToHex('ipfs://' + descriptionIpfsPath),
-                    kind: { lambda_function: lambdaFunction }
-                };
-                const operation = await contract.methodsObject.create_proposal(parameters).send()
-                    .catch(error => console.log('Error while sending the create lambda function proposal operation:', error));
-
-                // Wait for the confirmation
-                await this.state.confirmOperation(operation);
-
-                // Update the proposals and the user token balance
-                const proposals = await utils.getBigmapKeys(this.state.storage.proposals);
-                const userTokenBalance = await utils.getTokenBalance(this.state.storage.token, 0, this.state.userAddress);
-                this.setState({
-                    proposals: proposals,
-                    userTokenBalance: userTokenBalance
-                });
+                // Create the lambda function proposal
+                const kind = { lambda_function: lambdaFunction };
+                this.state.createProposal(title, descriptionIpfsPath, kind);
             },
 
             // Votes a proposal as a token holder
@@ -367,8 +351,9 @@ export class DaoContextProvider extends React.Component {
                 await this.state.confirmOperation(operation);
 
                 // Update the proposals and the user votes
-                const proposals = await utils.getBigmapKeys(this.state.storage.proposals);
-                const userVotes = await utils.getUserVotes(this.state.userAddress, this.state.storage.token_votes);
+                const storage = this.state.storage;
+                const proposals = await utils.getBigmapKeys(storage.proposals);
+                const userVotes = await utils.getUserVotes(this.state.userAddress, storage.token_votes);
                 this.setState({
                     proposals: proposals,
                     userVotes: userVotes
@@ -396,8 +381,9 @@ export class DaoContextProvider extends React.Component {
                 await this.state.confirmOperation(operation);
 
                 // Update the proposals and the community votes
-                const proposals = await utils.getBigmapKeys(this.state.storage.proposals);
-                const communityVotes = await utils.getCommunityVotes(this.state.community, this.state.storage.representatives_votes);
+                const storage = this.state.storage;
+                const proposals = await utils.getBigmapKeys(storage.proposals);
+                const communityVotes = await utils.getCommunityVotes(this.state.community, storage.representatives_votes);
                 this.setState({
                     proposals: proposals,
                     communityVotes: communityVotes
@@ -420,10 +406,13 @@ export class DaoContextProvider extends React.Component {
                 // Wait for the confirmation
                 await this.state.confirmOperation(operation);
 
-                // Update the proposals and the user token balance
-                const proposals = await utils.getBigmapKeys(this.state.storage.proposals);
-                const userTokenBalance = await utils.getTokenBalance(this.state.storage.token, 0, this.state.userAddress);
+                // Update the treasury token balance, the proposals and the user token balance
+                const storage = this.state.storage;
+                const tokenBalance = await utils.getTokenBalance(storage.token, 0, storage.treasury);
+                const proposals = await utils.getBigmapKeys(storage.proposals);
+                const userTokenBalance = await utils.getTokenBalance(storage.token, 0, this.state.userAddress);
                 this.setState({
+                    tokenBalance: tokenBalance,
                     proposals: proposals,
                     userTokenBalance: userTokenBalance
                 });
@@ -445,11 +434,14 @@ export class DaoContextProvider extends React.Component {
                 // Wait for the confirmation
                 await this.state.confirmOperation(operation);
 
-                // Update the storage, the proposals and the user token balance
+                // Update the storage, the treasury token balance, the proposals and the user token balance
                 const storage = await utils.getContractStorage(DAO_CONTRACT_ADDRESS);
+                const tokenBalance = await utils.getTokenBalance(storage.token, 0, storage.treasury);
                 const proposals = await utils.getBigmapKeys(storage.proposals);
                 const userTokenBalance = await utils.getTokenBalance(storage.token, 0, this.state.userAddress);
                 this.setState({
+                    storage: storage,
+                    tokenBalance: tokenBalance,
                     proposals: proposals,
                     userTokenBalance: userTokenBalance
                 });
@@ -471,13 +463,15 @@ export class DaoContextProvider extends React.Component {
                 // Wait for the confirmation
                 await this.state.confirmOperation(operation);
 
-                // Update the storage, the balance and the proposals
+                // Update the storage, the treasury balance, the treasury token balance and the proposals
                 const storage = await utils.getContractStorage(DAO_CONTRACT_ADDRESS);
                 const balance = await utils.getBalance(storage.treasury);
+                const tokenBalance = await utils.getTokenBalance(storage.token, 0, storage.treasury);
                 const proposals = await utils.getBigmapKeys(storage.proposals);
                 this.setState({
                     storage: storage,
                     balance: balance,
+                    tokenBalance: tokenBalance,
                     proposals: proposals
                 });
             },
@@ -509,16 +503,7 @@ export class DaoContextProvider extends React.Component {
         // Loads all the needed information at once
         this.loadInformation = async () => {
             // Initiailize the new state dictionary
-            const new_state = {
-                userAddress: undefined,
-                storage: undefined,
-                balance: undefined,
-                proposals: undefined,
-                userVotes: undefined,
-                userTokenBalance: undefined,
-                community: undefined,
-                communityVotes: undefined
-            }
+            const new_state = {}
 
             console.log('Accessing the user address...');
             const userAddress = await utils.getUserAddress(wallet);
@@ -532,6 +517,10 @@ export class DaoContextProvider extends React.Component {
                 console.log('Getting the DAO treasury tez balance...');
                 const balance = await utils.getBalance(storage.treasury);
                 new_state.balance = balance;
+
+                console.log('Downloading the DAO treasury DAO token balance...');
+                const tokenBalance = await utils.getTokenBalance(storage.token, 0, storage.treasury);
+                new_state.tokenBalance = tokenBalance;
 
                 console.log('Downloading the DAO proposals...');
                 const proposals = await utils.getBigmapKeys(storage.proposals);

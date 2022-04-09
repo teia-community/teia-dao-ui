@@ -6,7 +6,7 @@ import { TezosAddressLink } from './links';
 
 export function Parameters() {
     // Get the required DAO context information
-    const { userAddress, storage, balance, userTokenBalance, userVotes, community } = useContext(DaoContext);
+    const { userAddress, storage, balance, tokenBalance, userTokenBalance, userVotes, community } = useContext(DaoContext);
 
     return (
         <>
@@ -29,7 +29,7 @@ export function Parameters() {
                     <li>DAO guardians: <TezosAddressLink address={storage?.guardians} /></li>
                     <li>DAO administrator: <TezosAddressLink address={storage?.administrator} /></li>
                     <li>Teia Community representatives: <TezosAddressLink address={storage?.representatives} /></li>
-                    <li>DAO treasury balance: {balance ? balance / 1000000 : '0'} ꜩ</li>
+                    <li>DAO treasury balance: {balance ? balance / 1000000 : '0'} ꜩ and {tokenBalance ? tokenBalance / 1000000 : '0'} TEIA tokens</li>
                 </ul>
             </section>
 
