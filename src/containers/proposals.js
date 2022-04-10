@@ -10,7 +10,7 @@ import { hexToString } from './utils';
 
 export function Proposals() {
     // Get the required DAO context information
-    const { storage, proposals, userVotes } = useContext(DaoContext);
+    const { storage, proposals, userVotes, communityVotes } = useContext(DaoContext);
 
     // Separate the proposals depending of their current status
     const toVoteProposals = [];
@@ -39,7 +39,11 @@ export function Proposals() {
                 if (now > voteExpirationTime) {
                     pendingEvaluationProposals.push(proposal);
                 } else if (userVotes && userVotes[proposal.key]) {
-                    votedProposals.push(proposal);
+                    if (communityVotes && !communityVotes[proposal.key]) {
+                        toVoteProposals.push(proposal);
+                    } else {
+                        votedProposals.push(proposal);
+                    }
                 } else {
                     toVoteProposals.push(proposal);
                 }
@@ -156,11 +160,14 @@ function ProposalList(props) {
 function Proposal(props) {
     return (
         <div className='proposal'>
-            <ProposalTimestamp timestamp={props.proposal.timestamp} />
+            <ProposalLeftBlock
+                id={props.proposalId}
+                timestamp={props.proposal.timestamp}
+            />
             <ProposalDescription
                 id={props.proposalId}
                 proposal={props.proposal} />
-            <ProposalExtraInformation
+            <ProposalRightBlock
                 id={props.proposalId}
                 proposal={props.proposal}
                 canVote={props.canVote}
@@ -172,9 +179,42 @@ function Proposal(props) {
     );
 }
 
-function ProposalTimestamp(props) {
+function ProposalLeftBlock(props) {
+    // Get the DAO context
+    const { userTokenBalance, userVotes, communityVotes } = useContext(DaoContext);
+
+    // Check if the user is a DAO member
+    const isMember = userTokenBalance > 0;
+
+    // Check if the user is a community representative
+    const userIsRepresentative = communityVotes != undefined;
+
+    // Get the user vote and the vote class name
+    const userVote = userVotes && userVotes[props.id]?.vote;
+    let voteClassName = '';
+
+    if (userVote) {
+        voteClassName = userVote.yes ? ' yes-vote' : (userVote.no ? ' no-vote' : ' abstain-vote');
+    }
+
+    // Get the community vote and the community vote class name
+    const communityVote = communityVotes && communityVotes[props.id];
+    let communityVoteClassName = '';
+
+    if (communityVote) {
+        communityVoteClassName = communityVote.yes ? ' yes-vote' : (communityVote.no ? ' no-vote' : ' abstain-vote');
+    }
+
     return (
-        <span className='proposal-timestamp'>{props.timestamp}</span>
+        <div>
+            <p className='proposal-timestamp'>{props.timestamp}</p>
+            {isMember &&
+                <span className={'proposal-votes' + voteClassName}></span>
+            }
+            {userIsRepresentative &&
+                <span className={'proposal-votes' + communityVoteClassName}></span>
+            }
+        </div>
     );
 }
 
@@ -185,7 +225,10 @@ function ProposalDescription(props) {
             {' '}
             <ProposalDescriptionContent proposal={props.proposal} />
             {' '}
-            <ProposalCurrentVotes votes={props.proposal.token_votes} />
+            <ProposalVotes
+                tokenVotes={props.proposal.token_votes}
+                representativesVotes={props.proposal.representatives_votes}
+            />
         </div>
     );
 }
@@ -341,71 +384,130 @@ function ProposalDescriptionContent(props) {
     }
 }
 
-function ProposalCurrentVotes(props) {
+function ProposalVotes(props) {
+    // Get the DAO context
+    const { storage } = useContext(DaoContext);
+
+    // Calculate the representatives votes based in the current quorum
+    let representativesTotalVotes = 0;
+    let representativesPositiveVotes = 0;
+    let representativesNegativeVotes = 0;
+    let representativesAbstainVotes = 0;
+
+    if (props.representativesVotes.total > 0) {
+        representativesTotalVotes = Math.floor(storage.quorum * storage.governance_parameters.representatives_share / 100);
+        representativesPositiveVotes = Math.floor(representativesTotalVotes * parseInt(props.representativesVotes.positive) / parseInt(props.representativesVotes.total));
+        representativesNegativeVotes = Math.floor(representativesTotalVotes * props.representativesVotes.negative / props.representativesVotes.total);
+        representativesAbstainVotes = Math.floor(representativesTotalVotes * props.representativesVotes.abstain / props.representativesVotes.total);
+    }
+
+    // Calculate the sum of the token and representatives votes
+    const totalVotes = representativesTotalVotes + parseInt(props.tokenVotes.total);
+    const positiveVotes = representativesPositiveVotes + parseInt(props.tokenVotes.positive);
+    const negativeVotes = representativesNegativeVotes + parseInt(props.tokenVotes.negative);
+    const abstainVotes = representativesAbstainVotes + parseInt(props.tokenVotes.abstain);
+
     return (
         <>
             <p>
-                Current results:
+                Token votes:
                 {' '}
-                {props.votes.positive / TOKEN_DECIMALS} yes,
+                {props.tokenVotes.positive / TOKEN_DECIMALS} yes,
                 {' '}
-                {props.votes.negative / TOKEN_DECIMALS} no,
+                {props.tokenVotes.negative / TOKEN_DECIMALS} no,
                 {' '}
-                {props.votes.abstain / TOKEN_DECIMALS} abstain.
+                {props.tokenVotes.abstain / TOKEN_DECIMALS} abstain.
+            </p>
+            <p>
+                Representatives votes:
+                {' '}
+                {props.representativesVotes.positive} yes,
+                {' '}
+                {props.representativesVotes.negative} no,
+                {' '}
+                {props.representativesVotes.abstain} abstain.
+            </p>
+            <p>
+                Combined votes:
+                {' '}
+                {positiveVotes / TOKEN_DECIMALS} yes,
+                {' '}
+                {negativeVotes / TOKEN_DECIMALS} no,
+                {' '}
+                {abstainVotes / TOKEN_DECIMALS} abstain.
             </p>
         </>
     );
 }
 
-function ProposalExtraInformation(props) {
+function ProposalRightBlock(props) {
     // Get the DAO context
     const context = useContext(DaoContext);
 
     // Check if the user is a DAO member
     const isMember = context.userTokenBalance > 0;
 
-    // Check if the user is the proposal issuer
-    const isProposalIssuer = props.proposal.issuer === context.userAddress;
-
     // Check if the user can vote proposals
     const userCanVote = context.userTokenBalance > context.storage.governance_parameters.min_amount;
 
-    // Get the user vote and the vote class name
-    const userVote = context.userVotes && context.userVotes[props.id]?.vote;
-    let voteClassName = '';
+    // Check if the user is a community representative
+    const userIsRepresentative = context.communityVotes != undefined;
 
-    if (userVote) {
-        voteClassName = userVote.yes ? ' yes-vote' : (userVote.no ? ' no-vote' : ' abstain-vote');
-    }
+    // Check if the user is the proposal issuer
+    const isProposalIssuer = props.proposal.issuer === context.userAddress;
 
     return (
         <div className='proposal-extra-information'>
-            {isProposalIssuer && props.canCancel &&
-                <Button text='cancel' onClick={() => context.cancelProposal(props.id, true)} />
+            {props.canVote && userCanVote && !context.userVotes[props.id] &&
+                <div>
+                    <p>
+                        Vote with your tokens:
+                    </p>
+                    <div className='proposal-actions'>
+                        <Button text='yes' onClick={() => context.voteProposal(props.id, 'yes')} />
+                        <Button text='no' onClick={() => context.voteProposal(props.id, 'no')} />
+                        <Button text='abstain' onClick={() => context.voteProposal(props.id, 'abstain')} />
+                    </div>
+                </div>
             }
 
-            {userCanVote && props.canVote &&
-                <Button text='yes' onClick={() => context.voteProposal(props.id, 'yes')} />
+            {props.canVote && userIsRepresentative && !context.communityVotes[props.id] &&
+                <div>
+                    <p>
+                        Vote as representative:
+                    </p>
+                    <div className='proposal-actions'>
+                        <Button text='yes' onClick={() => context.voteProposalAsRepresentative(props.id, 'yes')} />
+                        <Button text='no' onClick={() => context.voteProposalAsRepresentative(props.id, 'no')} />
+                        <Button text='abstain' onClick={() => context.voteProposalAsRepresentative(props.id, 'abstain')} />
+                    </div>
+                </div>
             }
 
-            {userCanVote && props.canVote &&
-                <Button text='no' onClick={() => context.voteProposal(props.id, 'no')} />
+            {props.canCancel && isProposalIssuer && !props.canEvaluate && !props.canExecute &&
+                <div className='proposal-actions'>
+                    <Button text='cancel' onClick={() => context.cancelProposal(props.id, true)} />
+                </div>
             }
 
-            {userCanVote && props.canVote &&
-                <Button text='abstain' onClick={() => context.voteProposal(props.id, 'abstain')} />
+            {props.canEvaluate && isMember &&
+                <div className='proposal-actions'>
+                    {props.canCancel && isProposalIssuer &&
+                        <Button text='cancel' onClick={() => context.cancelProposal(props.id, true)} />
+                    }
+
+                    <Button text='evaluate' onClick={() => context.evaluateVotingResult(props.id)} />
+                </div>
             }
 
-            {isMember && props.canEvaluate &&
-                <Button text='evaluate' onClick={() => context.evaluateVotingResult(props.id)} />
-            }
+            {props.canExecute && isMember &&
+                <div className='proposal-actions'>
+                    {props.canCancel && isProposalIssuer &&
+                        <Button text='cancel' onClick={() => context.cancelProposal(props.id, true)} />
+                    }
 
-            {isMember && props.canExecute &&
-                <Button text='execute' onClick={() => context.executeProposal(props.id)} />
-            }
-
-            {isMember &&
-                <span className={'proposal-votes' + voteClassName} />
+                    <Button text='execute' onClick={() => context.executeProposal(props.id)} />
+                </div>
             }
         </div>
     );

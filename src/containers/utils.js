@@ -43,7 +43,7 @@ export async function getBigmapKeys(bigmap, extra_parameters = {}, network = NET
     const response = await axios.get(`https://api.${network}.tzkt.io/v1/bigmaps/${bigmap}/keys`, { params: parameters })
         .catch(error => console.log('Error while querying the bigmap keys:', error));
 
-    return response?.data;
+    return response?.data.reverse();
 }
 
 // Returns the account token balance
@@ -84,7 +84,7 @@ export async function getUserCommunity(userAddress, representativesAddress, netw
 // Returns the community DAO votes
 export async function getCommunityVotes(community, representatives_votes_bigmap, network = NETWORK) {
     // Download the community votes from the representatives votes bigmap
-    const extra_parameters = { 'key.community': community };
+    const extra_parameters = { 'key.string': community };
     const votes = await getBigmapKeys(representatives_votes_bigmap, extra_parameters, network);
 
     // Rearange the community votes information in a dictionary

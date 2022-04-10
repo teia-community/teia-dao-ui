@@ -158,11 +158,33 @@ section {
 .proposal-timestamp {
     font-family: monospace;
     font-size: $monospace-font-size;
+    margin: 0;
     padding: $small-padding $small-padding $small-padding 0;
 
     @media (min-width: $S) {
-        padding: $default-padding $default-padding $default-padding 0;
+        padding-right: $default-padding;
     }
+}
+
+.proposal-votes {
+    background-color: $vote-background-color;
+    margin: $small-margin $small-margin $default-margin 0;
+
+    &:empty:before {
+        content: '\200b';
+    }
+}
+
+.yes-vote {
+    background-color: $yes-vote-background-color;
+}
+
+.no-vote {
+    background-color: $no-vote-background-color;
+}
+
+.abstain-vote {
+    background-color: $abstain-vote-background-color;
 }
 
 .proposal-description {
@@ -220,27 +242,10 @@ details {
 
 .proposal-extra-information {
     padding: ($default-padding - $small-padding) 0;
-}
 
-.proposal-votes {
-    background-color: $vote-background-color;
-    text-align: center;
-    
-    &:empty:before {
-        content: '\200b';
+    p {
+        margin: 0 0 $small-margin 0;
     }
-}
-
-.yes-vote {
-    background-color: $yes-vote-background-color;
-}
-
-.no-vote {
-    background-color: $no-vote-background-color;
-}
-
-.abstain-vote {
-    background-color: $abstain-vote-background-color;
 }
 
 .micheline-code {

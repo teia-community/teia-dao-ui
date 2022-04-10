@@ -61,11 +61,24 @@ main {
 // 6th flexbox group
 .proposal-extra-information {
     display: flex;
-    flex-direction: row;
-    gap: $small-gap;
+    flex-direction: column;
+    gap: $default-gap;
 }
 
 // 7th flexbox group
+.proposal-actions {
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-start;
+    gap: $small-gap;
+    align-items: baseline;
+
+    @media (min-width: $M) {
+        justify-content: flex-end;    
+    }
+}
+
+// 8th flexbox group
 form {
     display: flex;
     flex-direction: column;
@@ -84,7 +97,7 @@ form {
     flex: 1 1 auto;
 }
 
-// 8th flexbox group
+// 9th flexbox group
 .message-container {
     display: flex;
     justify-content: center;
