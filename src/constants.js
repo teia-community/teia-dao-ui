@@ -9,6 +9,8 @@ export const IPFS_CLIENT = 'https://ipfs.infura.io:5001/api/v0';
 
 export const IPFS_GATEWAY = 'https://infura-ipfs.io/ipfs/';
 
+export const TOKEN_DECIMALS = 1000000;
+
 export const TOKENS = [
     {
         name: 'Teia DAO tokens',

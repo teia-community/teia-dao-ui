@@ -1,5 +1,5 @@
 import React, { useContext, useState } from 'react';
-import { TOKENS } from '../constants';
+import { TOKEN_DECIMALS, TOKENS } from '../constants';
 import { DaoContext } from './context';
 import { Button } from './button';
 import { IpfsLink } from './links';
@@ -25,7 +25,7 @@ export function CreateProposalForms() {
                 <p>
                     A minimum of
                     {' '}
-                    {context.storage?.governance_parameters.escrow_amount / 1000000}
+                    {context.storage?.governance_parameters.escrow_amount / TOKEN_DECIMALS}
                     {' '}
                     TEIA tokens are needed to create proposals.
                 </p>

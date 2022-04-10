@@ -1,7 +1,7 @@
 import React, { useContext } from 'react';
 import { Parser, emitMicheline } from '@taquito/michel-codec';
 import { encodePubKey } from '@taquito/utils';
-import { TOKENS } from '../constants';
+import { TOKEN_DECIMALS, TOKENS } from '../constants';
 import { DaoContext } from './context';
 import { Button } from './button';
 import { TezosAddressLink, TokenLink, IpfsLink } from './links';
@@ -184,6 +184,8 @@ function ProposalDescription(props) {
             <ProposalDescriptionIntro id={props.id} proposal={props.proposal} />
             {' '}
             <ProposalDescriptionContent proposal={props.proposal} />
+            {' '}
+            <ProposalCurrentVotes votes={props.proposal.token_votes} />
         </div>
     );
 }
@@ -337,6 +339,22 @@ function ProposalDescriptionContent(props) {
             </>
         );
     }
+}
+
+function ProposalCurrentVotes(props) {
+    return (
+        <>
+            <p>
+                Current results:
+                {' '}
+                {props.votes.positive / TOKEN_DECIMALS} yes,
+                {' '}
+                {props.votes.negative / TOKEN_DECIMALS} no,
+                {' '}
+                {props.votes.abstain / TOKEN_DECIMALS} abstain.
+            </p>
+        </>
+    );
 }
 
 function ProposalExtraInformation(props) {
