@@ -98,6 +98,7 @@ export function Proposals() {
                 <h2>Approved proposals</h2>
                 <p>
                     These are approved proposals that are still in the waiting phase.
+                    Once the waiting phase finishes, you will be able to execute them.
                 </p>
                 <ProposalList proposals={waitingProposals} canCancel />
             </section>
@@ -160,14 +161,15 @@ function ProposalList(props) {
 function Proposal(props) {
     return (
         <div className='proposal'>
-            <ProposalLeftBlock
+            <ProposalInitialBlock
                 id={props.proposalId}
                 timestamp={props.proposal.timestamp}
             />
             <ProposalDescription
                 id={props.proposalId}
-                proposal={props.proposal} />
-            <ProposalRightBlock
+                proposal={props.proposal}
+            />
+            <ProposalActions
                 id={props.proposalId}
                 proposal={props.proposal}
                 canVote={props.canVote}
@@ -179,15 +181,15 @@ function Proposal(props) {
     );
 }
 
-function ProposalLeftBlock(props) {
-    // Get the DAO context
+function ProposalInitialBlock(props) {
+    // Get the required DAO context information
     const { userTokenBalance, userVotes, communityVotes } = useContext(DaoContext);
 
     // Check if the user is a DAO member
     const isMember = userTokenBalance > 0;
 
     // Check if the user is a community representative
-    const userIsRepresentative = communityVotes != undefined;
+    const isRepresentative = communityVotes !== undefined;
 
     // Get the user vote and the vote class name
     const userVote = userVotes && userVotes[props.id]?.vote;
@@ -208,11 +210,13 @@ function ProposalLeftBlock(props) {
     return (
         <div>
             <p className='proposal-timestamp'>{props.timestamp}</p>
+
             {isMember &&
-                <span className={'proposal-votes' + voteClassName}></span>
+                <span className={'user-votes' + voteClassName} />
             }
-            {userIsRepresentative &&
-                <span className={'proposal-votes' + communityVoteClassName}></span>
+
+            {isRepresentative &&
+                <span className={'user-votes' + communityVoteClassName} />
             }
         </div>
     );
@@ -225,7 +229,7 @@ function ProposalDescription(props) {
             {' '}
             <ProposalDescriptionContent proposal={props.proposal} />
             {' '}
-            <ProposalVotes
+            <ProposalVotesSummary
                 tokenVotes={props.proposal.token_votes}
                 representativesVotes={props.proposal.representatives_votes}
             />
@@ -234,17 +238,24 @@ function ProposalDescription(props) {
 }
 
 function ProposalDescriptionIntro(props) {
+    // Get the proposal title and description
+    const title = hexToString(props.proposal.title);
+    const description = hexToString(props.proposal.description);
+
+    // Try to extract an ipfs path from the proposal description
+    const ipfsPath = description.split('/')[2];
+
     return (
         <>
             <p>
                 <span className='proposal-id'>#{props.id}</span>
-                <span className='proposal-title'>{hexToString(props.proposal.title)}</span>
+                <span className='proposal-title'>{title}</span>
             </p>
             <p>
                 Issuer: <TezosAddressLink address={props.proposal.issuer} useAlias shorten />
             </p>
             <p>
-                Description: <IpfsLink path={hexToString(props.proposal.description).split('/')[2]}>ipfs</IpfsLink>
+                Description: {ipfsPath ? <IpfsLink path={ipfsPath}>ipfs</IpfsLink> : description}
             </p>
         </>
     );
@@ -253,21 +264,19 @@ function ProposalDescriptionIntro(props) {
 function ProposalDescriptionContent(props) {
     // Write a different proposal description depending of the proposal kind
     const proposal = props.proposal;
-    const kind = proposal.kind;
 
-    if (kind.text) {
+    if (proposal.kind.text) {
         return (
             <p>
-                Effect: Approves a <IpfsLink path={hexToString(proposal.description).split('/')[2]}>text proposal</IpfsLink>.
+                Effect: Approves a text proposal.
             </p>
         );
-    } else if (kind.transfer_mutez) {
+    } else if (proposal.kind.transfer_mutez) {
         // Extract the transfers information
         const transfers = proposal.kind.transfer_mutez;
-        const nTransfers = transfers.length;
         const totalAmount = transfers.reduce((previous, current) => previous + parseInt(current.amount), 0);
 
-        if (nTransfers === 1) {
+        if (transfers.length === 1) {
             return (
                 <p>
                     Effect: Transfers {transfers[0].amount / 1000000} ꜩ to <TezosAddressLink address={transfers[0].destination} useAlias shorten />.
@@ -299,16 +308,15 @@ function ProposalDescriptionContent(props) {
                 </>
             );
         }
-    } else if (kind.transfer_token) {
+    } else if (proposal.kind.transfer_token) {
         // Extract the transfers information
         const fa2 = proposal.kind.transfer_token.fa2;
         const tokenId = proposal.kind.transfer_token.token_id;
         const transfers = proposal.kind.transfer_token.distribution;
-        const nTransfers = transfers.length;
         const nEditions = transfers.reduce((previous, current) => previous + parseInt(current.amount), 0);
         const token = TOKENS.find(token => token.fa2 === fa2);
 
-        if (nTransfers === 1) {
+        if (transfers.length === 1) {
             return (
                 <p>
                     Effect: Transfers {transfers[0].amount}
@@ -384,8 +392,8 @@ function ProposalDescriptionContent(props) {
     }
 }
 
-function ProposalVotes(props) {
-    // Get the DAO context
+function ProposalVotesSummary(props) {
+    // Get the required DAO context information
     const { storage } = useContext(DaoContext);
 
     // Calculate the representatives votes based in the current quorum
@@ -396,7 +404,7 @@ function ProposalVotes(props) {
 
     if (props.representativesVotes.total > 0) {
         representativesTotalVotes = Math.floor(storage.quorum * storage.governance_parameters.representatives_share / 100);
-        representativesPositiveVotes = Math.floor(representativesTotalVotes * parseInt(props.representativesVotes.positive) / parseInt(props.representativesVotes.total));
+        representativesPositiveVotes = Math.floor(representativesTotalVotes * props.representativesVotes.positive / props.representativesVotes.total);
         representativesNegativeVotes = Math.floor(representativesTotalVotes * props.representativesVotes.negative / props.representativesVotes.total);
         representativesAbstainVotes = Math.floor(representativesTotalVotes * props.representativesVotes.abstain / props.representativesVotes.total);
     }
@@ -407,8 +415,12 @@ function ProposalVotes(props) {
     const negativeVotes = representativesNegativeVotes + parseInt(props.tokenVotes.negative);
     const abstainVotes = representativesAbstainVotes + parseInt(props.tokenVotes.abstain);
 
+    // Check if the proposal passes the quorum and supermajority
+    const passesQuorum = totalVotes > storage.quorum;
+    const passesSupermajority = positiveVotes > Math.floor((positiveVotes + negativeVotes) * storage.governance_parameters.supermajority / 100);
+
     return (
-        <>
+        <div className='proposal-votes-summary'>
             <p>
                 Token votes:
                 {' '}
@@ -436,34 +448,40 @@ function ProposalVotes(props) {
                 {' '}
                 {abstainVotes / TOKEN_DECIMALS} abstain.
             </p>
-        </>
+            <p>
+                Passes supermajority condition? {passesSupermajority ? 'yes' : 'no'}
+            </p>
+            <p>
+                Passes minimum quorum condition? {passesQuorum ? 'yes' : 'no'}
+            </p>
+        </div>
     );
 }
 
-function ProposalRightBlock(props) {
+function ProposalActions(props) {
     // Get the DAO context
     const context = useContext(DaoContext);
 
     // Check if the user is a DAO member
     const isMember = context.userTokenBalance > 0;
 
-    // Check if the user can vote proposals
-    const userCanVote = context.userTokenBalance > context.storage.governance_parameters.min_amount;
-
     // Check if the user is a community representative
-    const userIsRepresentative = context.communityVotes != undefined;
+    const isRepresentative = context.communityVotes !== undefined;
 
     // Check if the user is the proposal issuer
     const isProposalIssuer = props.proposal.issuer === context.userAddress;
 
+    // Check if the user can vote proposals
+    const userCanVote = context.userTokenBalance >= context.storage.governance_parameters.min_amount;
+
     return (
-        <div className='proposal-extra-information'>
+        <div className='proposal-actions'>
             {props.canVote && userCanVote && !context.userVotes[props.id] &&
                 <div>
                     <p>
                         Vote with your tokens:
                     </p>
-                    <div className='proposal-actions'>
+                    <div className='proposal-action-buttons'>
                         <Button text='yes' onClick={() => context.voteProposal(props.id, 'yes')} />
                         <Button text='no' onClick={() => context.voteProposal(props.id, 'no')} />
                         <Button text='abstain' onClick={() => context.voteProposal(props.id, 'abstain')} />
@@ -471,12 +489,12 @@ function ProposalRightBlock(props) {
                 </div>
             }
 
-            {props.canVote && userIsRepresentative && !context.communityVotes[props.id] &&
+            {props.canVote && isRepresentative && !context.communityVotes[props.id] &&
                 <div>
                     <p>
                         Vote as representative:
                     </p>
-                    <div className='proposal-actions'>
+                    <div className='proposal-actions-buttons'>
                         <Button text='yes' onClick={() => context.voteProposalAsRepresentative(props.id, 'yes')} />
                         <Button text='no' onClick={() => context.voteProposalAsRepresentative(props.id, 'no')} />
                         <Button text='abstain' onClick={() => context.voteProposalAsRepresentative(props.id, 'abstain')} />
@@ -485,13 +503,13 @@ function ProposalRightBlock(props) {
             }
 
             {props.canCancel && isProposalIssuer && !props.canEvaluate && !props.canExecute &&
-                <div className='proposal-actions'>
+                <div className='proposal-actions-buttons'>
                     <Button text='cancel' onClick={() => context.cancelProposal(props.id, true)} />
                 </div>
             }
 
             {props.canEvaluate && isMember &&
-                <div className='proposal-actions'>
+                <div className='proposal-actions-buttons'>
                     {props.canCancel && isProposalIssuer &&
                         <Button text='cancel' onClick={() => context.cancelProposal(props.id, true)} />
                     }
@@ -501,7 +519,7 @@ function ProposalRightBlock(props) {
             }
 
             {props.canExecute && isMember &&
-                <div className='proposal-actions'>
+                <div className='proposal-actions-buttons'>
                     {props.canCancel && isProposalIssuer &&
                         <Button text='cancel' onClick={() => context.cancelProposal(props.id, true)} />
                     }

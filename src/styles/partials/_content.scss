@@ -80,7 +80,7 @@ footer {
     }
 }
 
-button, input, .users-list a, .proposal-votes {
+button, input, .users-list a, .user-votes {
     display: inline-block;
     font-family: monospace;
     font-size: $monospace-font-size;
@@ -166,7 +166,7 @@ section {
     }
 }
 
-.proposal-votes {
+.user-votes {
     background-color: $vote-background-color;
     margin: $small-margin $small-margin $default-margin 0;
 
@@ -193,7 +193,7 @@ section {
     padding: 0 $small-padding;
     border-left: $default-border;
 
-    & > p {
+    & p {
         margin: $small-margin 0;
     }
 
@@ -240,7 +240,15 @@ details {
     }
 }
 
-.proposal-extra-information {
+.proposal-votes-summary {
+    background-color: white;
+    margin: $default-margin 0 $small-margin 0;
+    padding: 0 $small-padding;
+    border: $default-border;
+    border-radius: $border-radius; 
+}
+
+.proposal-actions {
     padding: ($default-padding - $small-padding) 0;
 
     p {
