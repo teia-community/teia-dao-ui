@@ -1,12 +1,12 @@
 {
   "files": {
-    "main.css": "https://teia-community.github.io/teia-dao-ui/static/css/main.62c2eb7f.css",
-    "main.js": "https://teia-community.github.io/teia-dao-ui/static/js/main.10cf2b16.js",
+    "main.css": "https://teia-community.github.io/teia-dao-ui/static/css/main.cdd6a68b.css",
+    "main.js": "https://teia-community.github.io/teia-dao-ui/static/js/main.19dbf351.js",
     "static/js/27.9f48507a.chunk.js": "https://teia-community.github.io/teia-dao-ui/static/js/27.9f48507a.chunk.js",
     "index.html": "https://teia-community.github.io/teia-dao-ui/index.html"
   },
   "entrypoints": [
-    "static/css/main.62c2eb7f.css",
-    "static/js/main.10cf2b16.js"
+    "static/css/main.cdd6a68b.css",
+    "static/js/main.19dbf351.js"
   ]
 }
