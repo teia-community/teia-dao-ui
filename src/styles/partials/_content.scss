@@ -248,6 +248,27 @@ details {
     border-radius: $border-radius; 
 }
 
+.votes-display {
+    font-size: 0.9em;
+    text-align: center;
+    margin: 0 $default-margin;
+    border: $default-border;
+    display: flex;
+    flex-direction: row;
+}
+
+.vote-display-yes {
+    background-color: $yes-vote-background-color;
+}
+
+.vote-display-no {
+    background-color: $no-vote-background-color;
+}
+
+.vote-display-abstain {
+    background-color: $abstain-vote-background-color;
+}
+
 .proposal-actions {
     padding: ($default-padding - $small-padding) 0;
 

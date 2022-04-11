@@ -421,39 +421,59 @@ function ProposalVotesSummary(props) {
 
     return (
         <div className='proposal-votes-summary'>
-            <p>
-                Token votes:
-                {' '}
-                {props.tokenVotes.positive / TOKEN_DECIMALS} yes,
-                {' '}
-                {props.tokenVotes.negative / TOKEN_DECIMALS} no,
-                {' '}
-                {props.tokenVotes.abstain / TOKEN_DECIMALS} abstain.
-            </p>
-            <p>
-                Representatives votes:
-                {' '}
-                {props.representativesVotes.positive} yes,
-                {' '}
-                {props.representativesVotes.negative} no,
-                {' '}
-                {props.representativesVotes.abstain} abstain.
-            </p>
-            <p>
-                Combined votes:
-                {' '}
-                {positiveVotes / TOKEN_DECIMALS} yes,
-                {' '}
-                {negativeVotes / TOKEN_DECIMALS} no,
-                {' '}
-                {abstainVotes / TOKEN_DECIMALS} abstain.
-            </p>
+            <VotesDisplay
+                title='Token votes:'
+                yes={props.tokenVotes.positive / TOKEN_DECIMALS}
+                no={props.tokenVotes.negative / TOKEN_DECIMALS}
+                abstain={props.tokenVotes.abstain / TOKEN_DECIMALS}
+            />
+            <VotesDisplay
+                title='Representatives votes:'
+                yes={props.representativesVotes.positive}
+                no={props.representativesVotes.negative}
+                abstain={props.representativesVotes.abstain}
+            />
+            <VotesDisplay
+                title='Combined votes:'
+                yes={positiveVotes / TOKEN_DECIMALS}
+                no={negativeVotes / TOKEN_DECIMALS}
+                abstain={abstainVotes / TOKEN_DECIMALS}
+            />
             <p>
                 Passes supermajority condition? {passesSupermajority ? 'yes' : 'no'}
             </p>
             <p>
                 Passes minimum quorum condition? {passesQuorum ? 'yes' : 'no'}
             </p>
+        </div>
+    );
+}
+
+function VotesDisplay(props) {
+    const totalVotes = parseInt(props.yes) + parseInt(props.no) + parseInt(props.abstain);
+    const yesPercent = Math.round(100 * props.yes / totalVotes);
+    const noPercent = Math.round(100 * props.no / totalVotes);
+    const abstainPercent = Math.round(100 * props.abstain / totalVotes);
+
+    return (
+        <div>
+            <p>
+                {props.title}
+            </p>
+            <div className='votes-display'>
+                {totalVotes === 0 &&
+                    <div className='vote-display-nothing' style={{ width: '100%' }} >0</div>
+                }
+                {yesPercent > 0 &&
+                    <div className='vote-display-yes' style={{ width: yesPercent + '%' }} >{Math.round(props.yes)}</div>
+                }
+                {noPercent > 0 &&
+                    <div className='vote-display-no' style={{ width: noPercent + '%' }} >{Math.round(props.no)}</div>
+                }
+                {abstainPercent > 0 &&
+                    <div className='vote-display-abstain' style={{ width: abstainPercent + '%' }} >{Math.round(props.abstain)}</div>
+                }
+            </div>
         </div>
     );
 }
