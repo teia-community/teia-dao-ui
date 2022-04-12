@@ -416,8 +416,16 @@ function ProposalVotesSummary(props) {
     const abstainVotes = representativesAbstainVotes + parseInt(props.tokenVotes.abstain);
 
     // Check if the proposal passes the quorum and supermajority
-    const passesQuorum = totalVotes > storage.quorum;
-    const passesSupermajority = positiveVotes > Math.floor((positiveVotes + negativeVotes) * storage.governance_parameters.supermajority / 100);
+    const quorum = storage.quorum;
+    const supermajority = storage.governance_parameters.supermajority / 100;
+    const passesQuorum = totalVotes > quorum;
+    const passesSupermajority = positiveVotes > Math.floor((positiveVotes + negativeVotes) * supermajority);
+
+    // Calculate the number of votes needed to reach the quorum
+    const required_votes_for_quorum = passesQuorum ? 0 : (quorum - totalVotes);
+
+    // Calculate the number of yes votes needed to reach supermajority
+    const required_yes_votes_for_supermajority = passesSupermajority ? 0 : (negativeVotes == 0 ? TOKEN_DECIMALS : ((negativeVotes * supermajority / (1 - supermajority)) - positiveVotes));
 
     return (
         <div className='proposal-votes-summary'>
@@ -440,10 +448,10 @@ function ProposalVotesSummary(props) {
                 abstain={abstainVotes / TOKEN_DECIMALS}
             />
             <p>
-                Passes supermajority condition? {passesSupermajority ? 'yes' : 'no'}
+                Passes supermajority condition? {passesSupermajority ? 'yes' : `no, ${Math.ceil(required_yes_votes_for_supermajority / TOKEN_DECIMALS)} yes votes still missing.`}
             </p>
             <p>
-                Passes minimum quorum condition? {passesQuorum ? 'yes' : 'no'}
+                Passes minimum quorum condition? {passesQuorum ? 'yes' : `no, ${Math.ceil(required_votes_for_quorum / TOKEN_DECIMALS)} votes still missing.`}
             </p>
         </div>
     );
@@ -451,16 +459,16 @@ function ProposalVotesSummary(props) {
 
 function VotesDisplay(props) {
     const totalVotes = parseInt(props.yes) + parseInt(props.no) + parseInt(props.abstain);
-    const yesPercent = Math.round(100 * props.yes / totalVotes);
-    const noPercent = Math.round(100 * props.no / totalVotes);
-    const abstainPercent = Math.round(100 * props.abstain / totalVotes);
+    const yesPercent = 100 * props.yes / totalVotes;
+    const noPercent = 100 * props.no / totalVotes;
+    const abstainPercent = 100 * props.abstain / totalVotes;
 
     return (
-        <div>
-            <p>
+        <div className='votes-display'>
+            <p className='votes-display-title'>
                 {props.title}
             </p>
-            <div className='votes-display'>
+            <div className='votes-display-result'>
                 {totalVotes === 0 &&
                     <div className='vote-display-nothing' style={{ width: '100%' }} >0</div>
                 }

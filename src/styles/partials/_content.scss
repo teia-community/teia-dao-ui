@@ -158,8 +158,7 @@ section {
 .proposal-timestamp {
     font-family: monospace;
     font-size: $monospace-font-size;
-    margin: 0;
-    padding: $small-padding $small-padding $small-padding 0;
+    margin: $small-padding 0;
 
     @media (min-width: $S) {
         padding-right: $default-padding;
@@ -168,7 +167,7 @@ section {
 
 .user-votes {
     background-color: $vote-background-color;
-    margin: $small-margin $small-margin $default-margin 0;
+    margin: 0 $small-margin $small-margin 0;
 
     &:empty:before {
         content: '\200b';
@@ -190,14 +189,13 @@ section {
 .proposal-description {
     min-width: 20em;
     margin: 0;
-    padding: 0 $small-padding;
-    border-left: $default-border;
 
     & p {
         margin: $small-margin 0;
     }
 
     @media (min-width: $S) {
+        border-left: $default-border;
         padding: 0 $default-padding;
     }
 }
@@ -248,13 +246,17 @@ details {
     border-radius: $border-radius; 
 }
 
-.votes-display {
+.votes-display-result {
     font-size: 0.9em;
     text-align: center;
     margin: 0 $default-margin;
     border: $default-border;
     display: flex;
     flex-direction: row;
+}
+
+.vote-display-nothing {
+    background-color: $nothing-vote-background-color;
 }
 
 .vote-display-yes {
@@ -269,12 +271,8 @@ details {
     background-color: $abstain-vote-background-color;
 }
 
-.proposal-actions {
-    padding: ($default-padding - $small-padding) 0;
-
-    p {
-        margin: 0 0 $small-margin 0;
-    }
+.proposal-actions p {
+    margin: $small-margin 0;
 }
 
 .micheline-code {

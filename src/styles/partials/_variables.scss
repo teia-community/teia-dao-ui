@@ -17,9 +17,10 @@ $is-user-background-color: lighten(green, 60%);
 $is-user-hover-background-color: lighten(green, 50%);
 $proposal-id-background-color: white;
 $vote-background-color: white;
-$yes-vote-background-color: lighten(green, 60%);
-$no-vote-background-color: lighten(red, 30%);
-$abstain-vote-background-color: lighten(yellow, 30%);
+$nothing-vote-background-color: $section-background-color;
+$yes-vote-background-color: lighten(green, 55%);
+$no-vote-background-color: lighten(red, 25%);
+$abstain-vote-background-color: lighten(yellow, 25%);
 $message-background-color: rgba(0, 0, 0, 0.5);
 
 // Length variables
