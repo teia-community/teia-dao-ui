@@ -1,7 +1,7 @@
 
 export const NETWORK = 'ithacanet';
 
-export const DAO_CONTRACT_ADDRESS = 'KT1SpmiaEkwEg9Q7wsb8G6noEpM5xcRozror';
+export const DAO_CONTRACT_ADDRESS = 'KT1Qsh7dr3gzgL9autYsxtCHukq9h1ifJctp';
 
 export const RPC_NODE = 'https://ithacanet.ecadinfra.com';
 

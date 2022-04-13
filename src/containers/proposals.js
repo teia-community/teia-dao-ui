@@ -10,7 +10,7 @@ import { hexToString } from './utils';
 
 export function Proposals() {
     // Get the required DAO context information
-    const { storage, proposals, userVotes, communityVotes } = useContext(DaoContext);
+    const { governanceParameters, proposals, userVotes, communityVotes } = useContext(DaoContext);
 
     // Separate the proposals depending of their current status
     const toVoteProposals = [];
@@ -22,15 +22,16 @@ export function Proposals() {
     const rejectedProposals = [];
     const cancelledProposals = [];
 
-    if (storage && proposals) {
-        // Get the vote and wait period parameters from the storage
-        const votePeriod = parseInt(storage.governance_parameters.vote_period);
-        const waitPeriod = parseInt(storage.governance_parameters.wait_period);
-
+    if (governanceParameters && proposals) {
         // Loop over the complete list of proposals
         const now = new Date();
 
         for (const proposal of proposals) {
+            // Get the vote and wait period parameters from the storage
+            const proposalGovernanceParameters = governanceParameters[proposal.value.gp_index];
+            const votePeriod = parseInt(proposalGovernanceParameters.vote_period);
+            const waitPeriod = parseInt(proposalGovernanceParameters.wait_period);
+            
             if (proposal.value.status.open) {
                 // Check if the proposal voting period has expired
                 const voteExpirationTime = new Date(proposal.value.timestamp);
@@ -229,10 +230,7 @@ function ProposalDescription(props) {
             {' '}
             <ProposalDescriptionContent proposal={props.proposal} />
             {' '}
-            <ProposalVotesSummary
-                tokenVotes={props.proposal.token_votes}
-                representativesVotes={props.proposal.representatives_votes}
-            />
+            <ProposalVotesSummary proposal={props.proposal} />
         </div>
     );
 }
@@ -394,52 +392,50 @@ function ProposalDescriptionContent(props) {
 
 function ProposalVotesSummary(props) {
     // Get the required DAO context information
-    const { storage } = useContext(DaoContext);
+    const { governanceParameters} = useContext(DaoContext);
 
-    // Calculate the representatives votes based in the current quorum
-    let representativesTotalVotes = 0;
-    let representativesPositiveVotes = 0;
-    let representativesNegativeVotes = 0;
-    let representativesAbstainVotes = 0;
-
-    if (props.representativesVotes.total > 0) {
-        representativesTotalVotes = Math.floor(storage.quorum * storage.governance_parameters.representatives_share / 100);
-        representativesPositiveVotes = Math.floor(representativesTotalVotes * props.representativesVotes.positive / props.representativesVotes.total);
-        representativesNegativeVotes = Math.floor(representativesTotalVotes * props.representativesVotes.negative / props.representativesVotes.total);
-        representativesAbstainVotes = Math.floor(representativesTotalVotes * props.representativesVotes.abstain / props.representativesVotes.total);
-    }
+    // Get the proposal governance parameters
+    const proposalGovernanceParameters = governanceParameters[props.proposal.gp_index];
 
     // Calculate the sum of the token and representatives votes
-    const totalVotes = representativesTotalVotes + parseInt(props.tokenVotes.total);
-    const positiveVotes = representativesPositiveVotes + parseInt(props.tokenVotes.positive);
-    const negativeVotes = representativesNegativeVotes + parseInt(props.tokenVotes.negative);
-    const abstainVotes = representativesAbstainVotes + parseInt(props.tokenVotes.abstain);
+    let totalVotes = parseInt(props.proposal.token_votes.total);
+    let positiveVotes = parseInt(props.proposal.token_votes.positive);
+    let negativeVotes = parseInt(props.proposal.token_votes.negative);
+    let abstainVotes = parseInt(props.proposal.token_votes.abstain);
+
+    if (props.proposal.representatives_votes.total > 0) {
+        const representativesTotalVotes = Math.floor(props.proposal.quorum * proposalGovernanceParameters.representatives_share / 100);
+        totalVotes += representativesTotalVotes;
+        positiveVotes += Math.floor(representativesTotalVotes * props.proposal.representatives_votes.positive / props.proposal.representatives_votes.total);
+        negativeVotes += Math.floor(representativesTotalVotes * props.proposal.representatives_votes.negative / props.proposal.representatives_votes.total);
+        abstainVotes += Math.floor(representativesTotalVotes * props.proposal.representatives_votes.abstain / props.proposal.representatives_votes.total);
+    }
 
     // Check if the proposal passes the quorum and supermajority
-    const quorum = storage.quorum;
-    const supermajority = storage.governance_parameters.supermajority / 100;
+    const quorum = props.proposal.quorum;
+    const supermajority = proposalGovernanceParameters.supermajority / 100;
     const passesQuorum = totalVotes > quorum;
     const passesSupermajority = positiveVotes > Math.floor((positiveVotes + negativeVotes) * supermajority);
 
     // Calculate the number of votes needed to reach the quorum
-    const required_votes_for_quorum = passesQuorum ? 0 : (quorum - totalVotes);
+    const requiredVotesForQuorum = passesQuorum ? 0 : (quorum - totalVotes);
 
     // Calculate the number of yes votes needed to reach supermajority
-    const required_yes_votes_for_supermajority = passesSupermajority ? 0 : (negativeVotes == 0 ? TOKEN_DECIMALS : ((negativeVotes * supermajority / (1 - supermajority)) - positiveVotes));
+    const requiredYesVotesForSupermajority = passesSupermajority ? 0 : (negativeVotes === 0 ? TOKEN_DECIMALS : ((negativeVotes * supermajority / (1 - supermajority)) - positiveVotes));
 
     return (
         <div className='proposal-votes-summary'>
             <VotesDisplay
                 title='Token votes:'
-                yes={props.tokenVotes.positive / TOKEN_DECIMALS}
-                no={props.tokenVotes.negative / TOKEN_DECIMALS}
-                abstain={props.tokenVotes.abstain / TOKEN_DECIMALS}
+                yes={props.proposal.token_votes.positive / TOKEN_DECIMALS}
+                no={props.proposal.token_votes.negative / TOKEN_DECIMALS}
+                abstain={props.proposal.token_votes.abstain / TOKEN_DECIMALS}
             />
             <VotesDisplay
                 title='Representatives votes:'
-                yes={props.representativesVotes.positive}
-                no={props.representativesVotes.negative}
-                abstain={props.representativesVotes.abstain}
+                yes={props.proposal.representatives_votes.positive}
+                no={props.proposal.representatives_votes.negative}
+                abstain={props.proposal.representatives_votes.abstain}
             />
             <VotesDisplay
                 title='Combined votes:'
@@ -448,10 +444,10 @@ function ProposalVotesSummary(props) {
                 abstain={abstainVotes / TOKEN_DECIMALS}
             />
             <p>
-                Passes supermajority condition? {passesSupermajority ? 'yes' : `no, ${Math.ceil(required_yes_votes_for_supermajority / TOKEN_DECIMALS)} yes votes still missing.`}
+                Passes supermajority condition? {passesSupermajority ? 'yes' : `no, ${Math.ceil(requiredYesVotesForSupermajority / TOKEN_DECIMALS)} yes votes still missing.`}
             </p>
             <p>
-                Passes minimum quorum condition? {passesQuorum ? 'yes' : `no, ${Math.ceil(required_votes_for_quorum / TOKEN_DECIMALS)} votes still missing.`}
+                Passes minimum quorum condition? {passesQuorum ? 'yes' : `no, ${Math.ceil(requiredVotesForQuorum / TOKEN_DECIMALS)} votes still missing.`}
             </p>
         </div>
     );
@@ -500,7 +496,7 @@ function ProposalActions(props) {
     const isProposalIssuer = props.proposal.issuer === context.userAddress;
 
     // Check if the user can vote proposals
-    const userCanVote = context.userTokenBalance >= context.storage.governance_parameters.min_amount;
+    const userCanVote = context.userTokenBalance >= context.governanceParameters[props.proposal.gp_index].min_amount;
 
     return (
         <div className='proposal-actions'>

@@ -9,6 +9,9 @@ export function CreateProposalForms() {
     // Get the DAO context
     const context = useContext(DaoContext);
 
+    // Get the current governance parameters
+    const currentGovernanceParameters = context.governanceParameters && context.governanceParameters[context.storage?.gp_counter - 1];
+
     // Return if the user is not connected
     if (!context.userAddress) {
         return (
@@ -19,13 +22,13 @@ export function CreateProposalForms() {
     }
 
     // Return if the user doesn't have enough balance to create proposals
-    if (!(context.storage?.governance_parameters.escrow_amount <= context.userTokenBalance)) {
+    if (!(currentGovernanceParameters?.escrow_amount <= context.userTokenBalance)) {
         return (
             <section>
                 <p>
                     A minimum of
                     {' '}
-                    {context.storage?.governance_parameters.escrow_amount / TOKEN_DECIMALS}
+                    {currentGovernanceParameters?.escrow_amount / TOKEN_DECIMALS}
                     {' '}
                     TEIA tokens are needed to create proposals.
                 </p>

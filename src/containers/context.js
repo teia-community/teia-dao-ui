@@ -47,6 +47,9 @@ export class DaoContextProvider extends React.Component {
             // The DAO treasury DAO token balance
             tokenBalance: undefined,
 
+            // The DAO governance parameters
+            governanceParameters: undefined,
+
             // The DAO proposals
             proposals: undefined,
 
@@ -467,11 +470,13 @@ export class DaoContextProvider extends React.Component {
                 const storage = await utils.getContractStorage(DAO_CONTRACT_ADDRESS);
                 const balance = await utils.getBalance(storage.treasury);
                 const tokenBalance = await utils.getTokenBalance(storage.token, 0, storage.treasury);
+                const governanceParameters = await utils.getGovernanceParameters(storage.governanceParameters);
                 const proposals = await utils.getBigmapKeys(storage.proposals);
                 this.setState({
                     storage: storage,
                     balance: balance,
                     tokenBalance: tokenBalance,
+                    governanceParameters: governanceParameters,
                     proposals: proposals
                 });
             },
@@ -503,52 +508,56 @@ export class DaoContextProvider extends React.Component {
         // Loads all the needed information at once
         this.loadInformation = async () => {
             // Initiailize the new state dictionary
-            const new_state = {}
+            const newState = {}
 
             console.log('Accessing the user address...');
             const userAddress = await utils.getUserAddress(wallet);
-            new_state.userAddress = userAddress;
+            newState.userAddress = userAddress;
 
             console.log('Downloading the DAO contract storage...');
             const storage = await utils.getContractStorage(DAO_CONTRACT_ADDRESS);
-            new_state.storage = storage;
+            newState.storage = storage;
 
             if (storage) {
                 console.log('Getting the DAO treasury tez balance...');
                 const balance = await utils.getBalance(storage.treasury);
-                new_state.balance = balance;
+                newState.balance = balance;
 
                 console.log('Downloading the DAO treasury DAO token balance...');
                 const tokenBalance = await utils.getTokenBalance(storage.token, 0, storage.treasury);
-                new_state.tokenBalance = tokenBalance;
+                newState.tokenBalance = tokenBalance;
+
+                console.log('Downloading the DAO governance parameters...');
+                const governanceParameters = await utils.getGovernanceParameters(storage.governance_parameters);
+                newState.governanceParameters = governanceParameters;
 
                 console.log('Downloading the DAO proposals...');
                 const proposals = await utils.getBigmapKeys(storage.proposals);
-                new_state.proposals = proposals;
+                newState.proposals = proposals;
 
                 if (userAddress) {
                     console.log('Downloading the user DAO votes...');
                     const userVotes = await utils.getUserVotes(userAddress, storage.token_votes);
-                    new_state.userVotes = userVotes;
+                    newState.userVotes = userVotes;
 
                     console.log('Downloading the user DAO token balance...');
                     const userTokenBalance = await utils.getTokenBalance(storage.token, 0, userAddress);
-                    new_state.userTokenBalance = userTokenBalance;
+                    newState.userTokenBalance = userTokenBalance;
 
                     console.log('Getting the user community...');
                     const community = await utils.getUserCommunity(userAddress, storage.representatives);
-                    new_state.community = community;
+                    newState.community = community;
 
                     if (community) {
                         console.log('Downloading the user community DAO votes...');
                         const communityVotes = await utils.getCommunityVotes(community, storage.representatives_votes);
-                        new_state.communityVotes = communityVotes;
+                        newState.communityVotes = communityVotes;
                     }
                 }
             }
 
             // Update the component state
-            this.setState(new_state);
+            this.setState(newState);
         };
     }
 

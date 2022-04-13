@@ -6,8 +6,11 @@ import { TezosAddressLink } from './links';
 
 export function Parameters() {
     // Get the required DAO context information
-    const { userAddress, storage, balance, tokenBalance, userTokenBalance, userVotes, community } = useContext(DaoContext);
+    const { userAddress, storage, balance, tokenBalance, governanceParameters, userTokenBalance, userVotes, community } = useContext(DaoContext);
 
+    // Get the current governance parameters
+    const currentGovernanceParameters = governanceParameters && governanceParameters[storage?.gp_counter - 1];
+ 
     return (
         <>
             <section>
@@ -36,14 +39,14 @@ export function Parameters() {
             <section>
                 <h2>Governance parameters</h2>
                 <ul className='parameters-list'>
-                    <li>Vote method: {storage?.governance_parameters.vote_method.linear ? 'linear weight' : 'quadratic weight'}</li>
+                    <li>Vote method: {currentGovernanceParameters?.vote_method.linear ? 'linear weight' : 'quadratic weight'}</li>
                     <li>Required quorum: {storage?.quorum / TOKEN_DECIMALS} weighted votes</li>
-                    <li>Percentage for supermajority: {storage?.governance_parameters.supermajority}% positive votes</li>
-                    <li>Representatives vote share: {storage?.governance_parameters.representatives_share}% of the quorum</li>
-                    <li>Proposal voting period: {storage?.governance_parameters.vote_period} days</li>
-                    <li>Proposal waiting period: {storage?.governance_parameters.wait_period} days</li>
-                    <li>Number of tokens to escrow to submit a proposal: {storage?.governance_parameters.escrow_amount / TOKEN_DECIMALS} TEIA tokens</li>
-                    <li>Minimum number of tokens required to vote a proposal: {storage?.governance_parameters.min_amount / TOKEN_DECIMALS} TEIA tokens</li>
+                    <li>Percentage for supermajority: {currentGovernanceParameters?.supermajority}% positive votes</li>
+                    <li>Representatives vote share: {currentGovernanceParameters?.representatives_share}% of the quorum</li>
+                    <li>Proposal voting period: {currentGovernanceParameters?.vote_period} days</li>
+                    <li>Proposal waiting period: {currentGovernanceParameters?.wait_period} days</li>
+                    <li>Number of tokens to escrow to submit a proposal: {currentGovernanceParameters?.escrow_amount / TOKEN_DECIMALS} TEIA tokens</li>
+                    <li>Minimum number of tokens required to vote a proposal: {currentGovernanceParameters?.min_amount / TOKEN_DECIMALS} TEIA tokens</li>
                 </ul>
             </section>
         </>
