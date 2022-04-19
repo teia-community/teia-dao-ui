@@ -27,11 +27,11 @@ export function Proposals() {
         const now = new Date();
 
         for (const proposal of proposals) {
-            // Get the vote and wait period parameters from the storage
+            // Get the vote and wait period from the proposal governance parameters
             const proposalGovernanceParameters = governanceParameters[proposal.value.gp_index];
             const votePeriod = parseInt(proposalGovernanceParameters.vote_period);
             const waitPeriod = parseInt(proposalGovernanceParameters.wait_period);
-            
+
             if (proposal.value.status.open) {
                 // Check if the proposal voting period has expired
                 const voteExpirationTime = new Date(proposal.value.timestamp);
@@ -317,7 +317,7 @@ function ProposalDescriptionContent(props) {
         if (transfers.length === 1) {
             return (
                 <p>
-                    Effect: Transfers {transfers[0].amount}
+                    Effect: Transfers {token ? transfers[0].amount / token.decimals : transfers[0].amount}
                     {' '}
                     {token?.multiasset ? `edition${transfers[0].amount > 1 ? 's' : ''} of token` : ''}
                     {' '}
@@ -332,7 +332,7 @@ function ProposalDescriptionContent(props) {
             return (
                 <>
                     <p>
-                        Effect: Transfers {nEditions}
+                        Effect: Transfers {token ? nEditions / token.decimals : nEditions}
                         {' '}
                         {token?.multiasset ? 'editions of token' : ''}
                         {' '}
@@ -347,7 +347,7 @@ function ProposalDescriptionContent(props) {
                                 {transfers.map((transfer, index) => (
                                     <tr key={index}>
                                         <td>
-                                            {transfer.amount}
+                                            {token ? transfer.amount / token.decimals : transfer.amount}
                                             {' '}
                                             {token?.multiasset ? `edition${transfer.amount > 1 ? 's' : ''}` : ''} to
                                         </td>
@@ -392,7 +392,7 @@ function ProposalDescriptionContent(props) {
 
 function ProposalVotesSummary(props) {
     // Get the required DAO context information
-    const { governanceParameters} = useContext(DaoContext);
+    const { governanceParameters } = useContext(DaoContext);
 
     // Get the proposal governance parameters
     const proposalGovernanceParameters = governanceParameters[props.proposal.gp_index];

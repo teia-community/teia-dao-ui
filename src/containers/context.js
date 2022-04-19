@@ -8,6 +8,7 @@ import { NETWORK, DAO_CONTRACT_ADDRESS, RPC_NODE, IPFS_CLIENT } from '../constan
 import { InformationMessage, ConfirmationMessage, ErrorMessage } from './messages';
 import * as utils from './utils';
 
+
 // Initialize the tezos toolkit
 const tezos = new TezosToolkit(RPC_NODE);
 
@@ -41,7 +42,7 @@ export class DaoContextProvider extends React.Component {
             // The DAO governance contract storage
             storage: undefined,
 
-            // The DAO treasury balance in mutez
+            // The DAO treasury mutez balance
             balance: undefined,
 
             // The DAO treasury DAO token balance
@@ -160,13 +161,15 @@ export class DaoContextProvider extends React.Component {
                 console.log('Disconnecting the user wallet...');
                 await wallet.clearActiveAccount();
 
-                // Reset the user address, votes and DAO token balance
+                // Reset the user related state parameters
                 this.setState({
                     userAddress: undefined,
                     userVotes: undefined,
                     userTokenBalance: undefined,
                     community: undefined,
-                    communityVotes: undefined
+                    communityVotes: undefined,
+                    contract: undefined,
+                    tokenContract: undefined
                 });
             },
 
@@ -507,7 +510,7 @@ export class DaoContextProvider extends React.Component {
 
         // Loads all the needed information at once
         this.loadInformation = async () => {
-            // Initiailize the new state dictionary
+            // Initialize the new state dictionary
             const newState = {}
 
             console.log('Accessing the user address...');

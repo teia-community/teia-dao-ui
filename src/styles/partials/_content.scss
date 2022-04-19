@@ -271,8 +271,14 @@ details {
     background-color: $abstain-vote-background-color;
 }
 
-.proposal-actions p {
-    margin: $small-margin 0;
+.proposal-actions {
+    > :not(:first-child) {
+        margin-top: $default-margin;
+    }
+
+    p {
+        margin: $small-margin 0;
+    }
 }
 
 .micheline-code {

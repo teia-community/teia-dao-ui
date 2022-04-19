@@ -1,6 +1,7 @@
 import axios from 'axios';
 import { NETWORK } from '../constants';
 
+
 // Returns the user address
 export async function getUserAddress(wallet) {
     const activeAccount = await wallet.client.getActiveAccount()

@@ -10,7 +10,7 @@ export function CreateProposalForms() {
     const context = useContext(DaoContext);
 
     // Get the current governance parameters
-    const currentGovernanceParameters = context.governanceParameters && context.governanceParameters[context.storage?.gp_counter - 1];
+    const currentGovernanceParameters = context.governanceParameters && context.governanceParameters[context.storage.gp_counter - 1];
 
     // Return if the user is not connected
     if (!context.userAddress) {
@@ -49,9 +49,7 @@ export function CreateProposalForms() {
                     decide on a dog name, buy bread at the bakery).
                     The proposal description will be stored in IPFS for archival purposes.
                 </p>
-                <TextProposalForm
-                    handleSubmit={context.createTextProposal}
-                />
+                <TextProposalForm handleSubmit={context.createTextProposal} />
             </section>
 
             <section>
@@ -61,9 +59,7 @@ export function CreateProposalForms() {
                     the specified amount of tez from the DAO treasury to a list of tezos addresses.
                     The proposal description will be stored in IPFS for archival purposes.
                 </p>
-                <TransferTezProposalForm
-                    handleSubmit={context.createTransferMutezProposal}
-                />
+                <TransferTezProposalForm handleSubmit={context.createTransferMutezProposal} />
             </section>
 
             <section>
@@ -73,9 +69,7 @@ export function CreateProposalForms() {
                     the specified amount of token editions from the DAO treasury to a list of tezos addresses.
                     The proposal description will be stored in IPFS for archival purposes.
                 </p>
-                <TransferTokenProposalForm
-                    handleSubmit={context.createTransferTokenProposal}
-                />
+                <TransferTokenProposalForm handleSubmit={context.createTransferTokenProposal} />
             </section>
 
             <section>
@@ -95,16 +89,14 @@ export function CreateProposalForms() {
                     consequences. The lambda function code should have been revised by some trusted smart contract expert
                     before the proposal is accepted and executed.
                 </p>
-                <LambdaFunctionProposalForm
-                    handleSubmit={context.createLambdaFunctionProposal}
-                />
+                <LambdaFunctionProposalForm handleSubmit={context.createLambdaFunctionProposal} />
             </section>
         </>
     );
 }
 
 function GeneralProposalInputs(props) {
-    // Get the DAO context
+    // Get the required DAO context information
     const { uploadFileToIpfs } = useContext(DaoContext);
 
     // Set the component state
@@ -331,7 +323,7 @@ function TransferTokenProposalForm(props) {
         e.preventDefault();
 
         // Create a new transfers array
-        const newTransfers = transfers.map((transfer) => (
+        const newTransfers = transfers.map(transfer => (
             { amount: transfer.amount, destination: transfer.destination }
         ));
 
@@ -349,7 +341,15 @@ function TransferTokenProposalForm(props) {
     // Define the on submit handler
     const handleSubmit = (e) => {
         e.preventDefault();
-        props.handleSubmit(title, descriptionIpfsPath, tokenContract, tokenId, transfers);
+
+        // Create a new transfers array that makes use of the correct decimals
+        const token = TOKENS.find(token => token.fa2 === tokenContract);
+        const newTransfers = transfers.map(transfer => (
+            { amount: token ? transfer.amount * token.decimals : transfer.amount, destination: transfer.destination }
+        ));
+
+        // Submit the proposal
+        props.handleSubmit(title, descriptionIpfsPath, tokenContract, tokenId, newTransfers);
     };
 
     return (
