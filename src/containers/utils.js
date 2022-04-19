@@ -1,6 +1,7 @@
 import axios from 'axios';
 import { NETWORK } from '../constants';
 
+
 // Returns the user address
 export async function getUserAddress(wallet) {
     const activeAccount = await wallet.client.getActiveAccount()
@@ -32,14 +33,14 @@ export async function getBalance(account, network = NETWORK) {
 }
 
 // Returns some bigmap keys
-export async function getBigmapKeys(bigmap, extra_parameters = {}, network = NETWORK) {
+export async function getBigmapKeys(bigmap, extraParameters = {}, network = NETWORK) {
     const parameters = Object.assign(
         {
             limit: 10000,
             active: true,
             select: 'key,value',
         },
-        extra_parameters);
+        extraParameters);
     const response = await axios.get(`https://api.${network}.tzkt.io/v1/bigmaps/${bigmap}/keys`, { params: parameters })
         .catch(error => console.log('Error while querying the bigmap keys:', error));
 
@@ -60,11 +61,23 @@ export async function getTokenBalance(token, tokenId, account, network = NETWORK
     return response?.data[0];
 }
 
+// Returns the DAO governance parameters
+export async function getGovernanceParameters(governanceParametersBigmap, network = NETWORK) {
+    // Download the governance parameters bigmap
+    const gpData = await getBigmapKeys(governanceParametersBigmap, {}, network);
+
+    // Rearange the governance parameters information in a dictionary
+    const governanceParameters = gpData ? {} : undefined;
+    gpData?.forEach(gp => governanceParameters[gp.key] = gp.value);
+
+    return governanceParameters;
+}
+
 // Returns the user DAO votes
-export async function getUserVotes(userAddress, token_votes_bigmap, network = NETWORK) {
+export async function getUserVotes(userAddress, tokenVotesBigmap, network = NETWORK) {
     // Download the user votes from the token votes bigmap
-    const extra_parameters = { 'key.address': userAddress };
-    const votes = await getBigmapKeys(token_votes_bigmap, extra_parameters, network);
+    const extraParameters = { 'key.address': userAddress };
+    const votes = await getBigmapKeys(tokenVotesBigmap, extraParameters, network);
 
     // Rearange the user votes information in a dictionary
     const userVotes = votes ? {} : undefined;
@@ -82,10 +95,10 @@ export async function getUserCommunity(userAddress, representativesAddress, netw
 }
 
 // Returns the community DAO votes
-export async function getCommunityVotes(community, representatives_votes_bigmap, network = NETWORK) {
+export async function getCommunityVotes(community, representativesVotesBigmap, network = NETWORK) {
     // Download the community votes from the representatives votes bigmap
-    const extra_parameters = { 'key.string': community };
-    const votes = await getBigmapKeys(representatives_votes_bigmap, extra_parameters, network);
+    const extraParameters = { 'key.string': community };
+    const votes = await getBigmapKeys(representativesVotesBigmap, extraParameters, network);
 
     // Rearange the community votes information in a dictionary
     const communityVotes = votes ? {} : undefined;

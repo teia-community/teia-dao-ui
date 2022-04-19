@@ -33,7 +33,7 @@ export function Navigation() {
 }
 
 export function Wallet() {
-    // Get the DAO context
+    // Get the required DAO context information
     const { userAddress, connectWallet, disconnectWallet } = useContext(DaoContext);
 
     return (
