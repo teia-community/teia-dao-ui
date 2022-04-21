@@ -21,6 +21,7 @@ export function TzktLink(props) {
 export function TezosAddressLink(props) {
     return (
         <TzktLink address={props.address} className={`tezos-address ${props.className ? props.className : ''}`}>
+            {props.children}
             {props.shorten ? props.address.slice(0, 5) + '...' + props.address.slice(-5) : props.address}
         </TzktLink>
     );

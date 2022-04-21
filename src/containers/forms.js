@@ -103,13 +103,13 @@ function GeneralProposalInputs(props) {
     const [descriptionFile, setDescriptionFile] = useState(undefined);
 
     // Define the on change handler
-    const handleChange = (e) => {
+    const handleChange = e => {
         setDescriptionFile(e.target.files[0]);
         props.setDescriptionIpfsPath(undefined);
     };
 
     // Define the on click handler
-    const handleClick = async (e) => {
+    const handleClick = async e => {
         e.preventDefault();
 
         // Update the component state
@@ -125,7 +125,7 @@ function GeneralProposalInputs(props) {
                     spellCheck='false'
                     minLength='1'
                     value={props.title}
-                    onChange={(e) => props.setTitle(e.target.value)}
+                    onChange={e => props.setTitle(e.target.value)}
                 />
             </label>
             <br />
@@ -155,7 +155,7 @@ function TextProposalForm(props) {
     const [descriptionIpfsPath, setDescriptionIpfsPath] = useState(undefined);
 
     // Define the on submit handler
-    const handleSubmit = (e) => {
+    const handleSubmit = e => {
         e.preventDefault();
         props.handleSubmit(title, descriptionIpfsPath);
     };
@@ -226,7 +226,7 @@ function TransferTezProposalForm(props) {
     };
 
     // Define the on submit handler
-    const handleSubmit = (e) => {
+    const handleSubmit = e => {
         e.preventDefault();
         props.handleSubmit(
             title,
@@ -258,7 +258,7 @@ function TransferTezProposalForm(props) {
                                     min='0'
                                     step='0.000001'
                                     value={transfer.amount}
-                                    onChange={(e) => handleChange(index, 'amount', e.target.value)}
+                                    onChange={e => handleChange(index, 'amount', e.target.value)}
                                 />
                             </label>
                             <br />
@@ -271,15 +271,15 @@ function TransferTezProposalForm(props) {
                                     maxLength='36'
                                     className='tezos-wallet-input'
                                     value={transfer.destination}
-                                    onChange={(e) => handleChange(index, 'destination', e.target.value)}
+                                    onChange={e => handleChange(index, 'destination', e.target.value)}
                                 />
                             </label>
                         </div>
                     ))}
                 </div>
-                <Button text='+' onClick={(e) => handleClick(e, true)} />
+                <Button text='+' onClick={e => handleClick(e, true)} />
                 {' '}
-                <Button text='-' onClick={(e) => handleClick(e, false)} />
+                <Button text='-' onClick={e => handleClick(e, false)} />
             </div>
             <input type='submit' value='send proposal' />
         </form>
@@ -339,7 +339,7 @@ function TransferTokenProposalForm(props) {
     };
 
     // Define the on submit handler
-    const handleSubmit = (e) => {
+    const handleSubmit = e => {
         e.preventDefault();
 
         // Create a new transfers array that makes use of the correct decimals
@@ -373,7 +373,7 @@ function TransferTokenProposalForm(props) {
                         className='contract-address-input'
                         value={tokenContract}
                         onMouseDown={() => setTokenContract('')}
-                        onChange={(e) => setTokenContract(e.target.value)}
+                        onChange={e => setTokenContract(e.target.value)}
                     />
                     <datalist id='tokenContracts'>
                         <option value=''></option>
@@ -390,7 +390,7 @@ function TransferTokenProposalForm(props) {
                         min='0'
                         step='1'
                         value={tokenId}
-                        onChange={(e) => setTokenId(e.target.value)}
+                        onChange={e => setTokenId(e.target.value)}
                     />
                 </label>
                 <br />
@@ -404,7 +404,7 @@ function TransferTokenProposalForm(props) {
                                     min='1'
                                     step='1'
                                     value={transfer.amount}
-                                    onChange={(e) => handleChange(index, 'amount', e.target.value)}
+                                    onChange={e => handleChange(index, 'amount', e.target.value)}
                                 />
                             </label>
                             <br />
@@ -417,15 +417,15 @@ function TransferTokenProposalForm(props) {
                                     maxLength='36'
                                     className='tezos-wallet-input'
                                     value={transfer.destination}
-                                    onChange={(e) => handleChange(index, 'destination', e.target.value)}
+                                    onChange={e => handleChange(index, 'destination', e.target.value)}
                                 />
                             </label>
                         </div>
                     ))}
                 </div>
-                <Button text='+' onClick={(e) => handleClick(e, true)} />
+                <Button text='+' onClick={e => handleClick(e, true)} />
                 {' '}
-                <Button text='-' onClick={(e) => handleClick(e, false)} />
+                <Button text='-' onClick={e => handleClick(e, false)} />
             </div>
             <input type='submit' value='send proposal' />
         </form>
@@ -438,13 +438,8 @@ function LambdaFunctionProposalForm(props) {
     const [descriptionIpfsPath, setDescriptionIpfsPath] = useState(undefined);
     const [michelineCode, setMichelineCode] = useState('');
 
-    // Define the on change handler
-    const handleChange = (e) => {
-        setMichelineCode(e.target.value);
-    };
-
     // Define the on submit handler
-    const handleSubmit = (e) => {
+    const handleSubmit = e => {
         e.preventDefault();
         props.handleSubmit(title, descriptionIpfsPath, michelineCode);
     };
@@ -465,7 +460,7 @@ function LambdaFunctionProposalForm(props) {
                         className='micheline-code'
                         spellCheck='false'
                         value={michelineCode}
-                        onChange={handleChange}
+                        onChange={e => setMichelineCode(e.target.value)}
                     />
                 </label>
             </div>
