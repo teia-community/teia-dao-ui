@@ -473,7 +473,7 @@ export class DaoContextProvider extends React.Component {
                 const storage = await utils.getContractStorage(DAO_CONTRACT_ADDRESS);
                 const balance = await utils.getBalance(storage.treasury);
                 const tokenBalance = await utils.getTokenBalance(storage.token, 0, storage.treasury);
-                const governanceParameters = await utils.getGovernanceParameters(storage.governanceParameters);
+                const governanceParameters = await utils.getGovernanceParameters(storage.governance_parameters);
                 const proposals = await utils.getBigmapKeys(storage.proposals);
                 this.setState({
                     storage: storage,

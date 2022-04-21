@@ -438,11 +438,6 @@ function LambdaFunctionProposalForm(props) {
     const [descriptionIpfsPath, setDescriptionIpfsPath] = useState(undefined);
     const [michelineCode, setMichelineCode] = useState('');
 
-    // Define the on change handler
-    const handleChange = e => {
-        setMichelineCode(e.target.value);
-    };
-
     // Define the on submit handler
     const handleSubmit = e => {
         e.preventDefault();
@@ -465,7 +460,7 @@ function LambdaFunctionProposalForm(props) {
                         className='micheline-code'
                         spellCheck='false'
                         value={michelineCode}
-                        onChange={handleChange}
+                        onChange={e => setMichelineCode(e.target.value)}
                     />
                 </label>
             </div>
