@@ -420,16 +420,19 @@ function ProposalVotesSummary(props) {
     // Calculate the number of votes needed to reach the quorum
     const requiredVotesForQuorum = passesQuorum ? 0 : (quorum - totalVotes);
 
+    // Calculate the vote scaling depending on the vote method
+    const voteScaling = proposalGovernanceParameters.vote_method.linear ? TOKEN_DECIMALS : Math.pow(TOKEN_DECIMALS, 0.5);
+
     // Calculate the number of yes votes needed to reach supermajority
-    const requiredYesVotesForSupermajority = passesSupermajority ? 0 : (negativeVotes === 0 ? TOKEN_DECIMALS : ((negativeVotes * supermajority / (1 - supermajority)) - positiveVotes));
+    const requiredYesVotesForSupermajority = passesSupermajority ? 0 : (negativeVotes === 0 ? voteScaling : ((negativeVotes * supermajority / (1 - supermajority)) - positiveVotes));
 
     return (
         <div className='proposal-votes-summary'>
             <VotesDisplay
                 title='Token votes:'
-                yes={props.proposal.token_votes.positive / TOKEN_DECIMALS}
-                no={props.proposal.token_votes.negative / TOKEN_DECIMALS}
-                abstain={props.proposal.token_votes.abstain / TOKEN_DECIMALS}
+                yes={props.proposal.token_votes.positive / voteScaling}
+                no={props.proposal.token_votes.negative / voteScaling}
+                abstain={props.proposal.token_votes.abstain / voteScaling}
             />
             <VotesDisplay
                 title='Representatives votes:'
@@ -439,15 +442,15 @@ function ProposalVotesSummary(props) {
             />
             <VotesDisplay
                 title='Combined votes:'
-                yes={positiveVotes / TOKEN_DECIMALS}
-                no={negativeVotes / TOKEN_DECIMALS}
-                abstain={abstainVotes / TOKEN_DECIMALS}
+                yes={positiveVotes / voteScaling}
+                no={negativeVotes / voteScaling}
+                abstain={abstainVotes / voteScaling}
             />
             <p>
-                Passes supermajority condition? {passesSupermajority ? 'yes' : `no, ${Math.ceil(requiredYesVotesForSupermajority / TOKEN_DECIMALS)} yes votes still missing.`}
+                Passes supermajority condition? {passesSupermajority ? 'yes' : `no, ${Math.ceil(requiredYesVotesForSupermajority / voteScaling)} yes votes still missing.`}
             </p>
             <p>
-                Passes minimum quorum condition? {passesQuorum ? 'yes' : `no, ${Math.ceil(requiredVotesForQuorum / TOKEN_DECIMALS)} votes still missing.`}
+                Passes minimum quorum condition? {passesQuorum ? 'yes' : `no, ${Math.ceil(requiredVotesForQuorum / voteScaling)} votes still missing.`}
             </p>
         </div>
     );

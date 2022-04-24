@@ -12,12 +12,15 @@ export function Parameters() {
     // Get the current governance parameters
     const currentGovernanceParameters = governanceParameters && governanceParameters[storage.gp_counter - 1];
 
+    // Calculate the vote scaling depending on the vote method
+    const voteScaling = currentGovernanceParameters?.vote_method.linear ? TOKEN_DECIMALS : Math.pow(TOKEN_DECIMALS, 0.5);
+
     return (
         <>
             <section>
                 <h2>User information</h2>
                 <ul className='parameters-list'>
-                    <li>Address: {userAddress? <TezosAddressLink address={userAddress} /> : <Button text='sync wallet' onClick={() => connectWallet()} />}</li>
+                    <li>Address: {userAddress ? <TezosAddressLink address={userAddress} /> : <Button text='sync wallet' onClick={() => connectWallet()} />}</li>
                     <li>Teia Community: {community ? community : 'not a community representative'}</li>
                     <li>DAO token balance: {userTokenBalance ? userTokenBalance / TOKEN_DECIMALS : 0} TEIA tokens</li>
                     <li>Voted in {userVotes ? Object.keys(userVotes).length : 0} proposals.</li>
@@ -41,7 +44,7 @@ export function Parameters() {
                 <h2>Current governance parameters</h2>
                 <ul className='parameters-list'>
                     <li>Vote method: {currentGovernanceParameters?.vote_method.linear ? 'linear weight' : 'quadratic weight'}</li>
-                    <li>Required quorum: {storage?.quorum / TOKEN_DECIMALS} weighted votes</li>
+                    <li>Required quorum: {storage?.quorum / voteScaling} weighted votes</li>
                     <li>Percentage for supermajority: {currentGovernanceParameters?.supermajority}% positive votes</li>
                     <li>Representatives vote share: {currentGovernanceParameters?.representatives_share}% of the quorum</li>
                     <li>Proposal voting period: {currentGovernanceParameters?.vote_period} days</li>
