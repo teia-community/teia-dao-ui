@@ -7,7 +7,7 @@ import { Button } from './button';
 
 export function Parameters() {
     // Get the required DAO context information
-    const { userAddress, storage, balance, tokenBalance, governanceParameters, userTokenBalance, userVotes, community, connectWallet } = useContext(DaoContext);
+    const { userAddress, storage, balance, tokenBalance, governanceParameters, userTokenBalance, userVotes, community, connectWallet, claimTokens } = useContext(DaoContext);
 
     // Get the current governance parameters
     const currentGovernanceParameters = governanceParameters && governanceParameters[storage.gp_counter - 1];
@@ -24,6 +24,7 @@ export function Parameters() {
                     <li>Teia Community: {community ? community : 'not a community representative'}</li>
                     <li>DAO token balance: {userTokenBalance ? userTokenBalance / TOKEN_DECIMALS : 0} TEIA tokens</li>
                     <li>Voted in {userVotes ? Object.keys(userVotes).length : 0} proposals.</li>
+                    <li><Button text='Claim DAO tokens' onClick={claimTokens} /></li>
                 </ul>
             </section>
 

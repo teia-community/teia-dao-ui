@@ -4,7 +4,11 @@ import { BeaconWallet } from '@taquito/beacon-wallet';
 import { Parser } from '@taquito/michel-codec';
 import { validateAddress } from '@taquito/utils';
 import { create } from 'ipfs-http-client';
-import { NETWORK, DAO_CONTRACT_ADDRESS, RPC_NODE, IPFS_CLIENT } from '../constants';
+import {
+    NETWORK, DAO_CONTRACT_ADDRESS, TOKEN_DROP_CONTRACT_ADDRESS,
+    DISTRIBUTION_MAPPING_IPFS_PATH, MERKLE_DATA_IPFS_PATHS, RPC_NODE,
+    IPFS_CLIENT, IPFS_GATEWAY
+} from '../constants';
 import { InformationMessage, ConfirmationMessage, ErrorMessage } from './messages';
 import * as utils from './utils';
 
@@ -72,6 +76,9 @@ export class DaoContextProvider extends React.Component {
             // The DAO Token contract reference
             tokenContract: undefined,
 
+            // The DAO Token drop contract reference
+            dropContract: undefined,
+
             // The information message
             informationMessage: undefined,
 
@@ -124,6 +131,19 @@ export class DaoContextProvider extends React.Component {
                 return tokenContract;
             },
 
+            // Returns the DAO token drop contract reference
+            getDropContract: async () => {
+                if (this.state.dropContract) {
+                    return this.state.dropContract;
+                }
+
+                console.log('Accessing the DAO token drop contract...');
+                const dropContract = await utils.getContract(tezos, TOKEN_DROP_CONTRACT_ADDRESS);
+                this.setState({ dropContract: dropContract });
+
+                return dropContract;
+            },
+
             // Connects the user wallet
             connectWallet: async () => {
                 console.log('Connecting the user wallet...');
@@ -169,7 +189,8 @@ export class DaoContextProvider extends React.Component {
                     community: undefined,
                     communityVotes: undefined,
                     contract: undefined,
-                    tokenContract: undefined
+                    tokenContract: undefined,
+                    dropContract: undefined
                 });
             },
 
@@ -484,6 +505,44 @@ export class DaoContextProvider extends React.Component {
                 });
             },
 
+            // Claims the DAO tokens
+            claimTokens: async () => {
+                // Get the drop contract reference
+                const dropContract = await this.state.getDropContract();
+
+                // Return if the drop contract reference is not available
+                if (!dropContract) return;
+
+                // Download the distribution file mapping file
+                const mapping = await this.state.downloadFileFromIpfs(DISTRIBUTION_MAPPING_IPFS_PATH);
+
+                // Check that the user address is included in the mapping data
+                if (!(this.state.userAddress in mapping)) {
+                    this.state.setErrorMessage('Unfortunately you cannot claim any DAO tokens');
+                    return;
+                }
+
+                // Download the Merkle data
+                const merkleDataPath = MERKLE_DATA_IPFS_PATHS[mapping[this.state.userAddress]];
+                const merkleData = await this.state.downloadFileFromIpfs(merkleDataPath);
+
+                // Send the claim operation
+                console.log('Sending the claim operation to the token drop contract...');
+                const userMerkleData = merkleData[this.state.userAddress];
+                const operation = await dropContract.methods.claim(userMerkleData.proof, userMerkleData.leafDataPacked).send()
+                    .catch(error => console.log('Error while sending the claim operation:', error));
+
+                // Wait for the confirmation
+                await this.state.confirmOperation(operation);
+
+                // Update the user token balance
+                const storage = this.state.storage;
+                const userTokenBalance = await utils.getTokenBalance(storage.token, 0, this.state.userAddress);
+                this.setState({
+                    userTokenBalance: userTokenBalance
+                });
+            },
+
             // Uploads a file to ipfs and returns the ipfs path
             uploadFileToIpfs: async (file, displayUploadInformation) => {
                 // Check that the file is not undefined
@@ -505,6 +564,20 @@ export class DaoContextProvider extends React.Component {
 
                 // Return the IPFS path
                 return added?.path;
+            },
+
+            // Downloads a file from ipfs
+            downloadFileFromIpfs: async (ipfsPath) => {
+                // Download the file from IPFS
+                console.log(`Downloading file from ipfs with path ${ipfsPath}...`);
+                const response = await fetch(IPFS_GATEWAY + ipfsPath);
+
+                if (!response.ok) {
+                    this.state.setErrorMessage(`There was a problem downloading a file from ipfs with path ${ipfsPath}`);
+                    return;
+                }
+
+                return await response.json();
             },
         };
 

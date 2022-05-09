@@ -3,6 +3,8 @@ export const NETWORK = 'ithacanet';
 
 export const DAO_CONTRACT_ADDRESS = 'KT1Qsh7dr3gzgL9autYsxtCHukq9h1ifJctp';
 
+export const TOKEN_DROP_CONTRACT_ADDRESS = 'KT1RAh5JrEhSDCT3cUGfAdW1tE2P7BnNcRv9';
+
 export const RPC_NODE = 'https://ithacanet.ecadinfra.com';
 
 export const IPFS_CLIENT = 'https://ipfs.infura.io:5001/api/v0';
@@ -10,6 +12,16 @@ export const IPFS_CLIENT = 'https://ipfs.infura.io:5001/api/v0';
 export const IPFS_GATEWAY = 'https://infura-ipfs.io/ipfs/';
 
 export const TOKEN_DECIMALS = 1000000;
+
+export const DISTRIBUTION_MAPPING_IPFS_PATH = "QmPhMyDQEksUpyrstBcgZpwzNSoSJi4scy3JjRwiXeJzgb";
+
+export const MERKLE_DATA_IPFS_PATHS = {
+    0: "QmScM6gEbYBVzSqMTZiki3oDmYaAnakZHDeorbfrvieDYQ",
+    1: "QmPNMSFux3Z7iWv6zdsBZ9t16unQksh5UqNQpNKu35m8M2",
+    2: "QmRhz4dcU5HCzoYf1pXBrWFGAFLdNTdaRzK2wjwXMMETas",
+    3: "Qmb5cAFkc4JkgVZA5Y5q9aJCqWpUPtjuheu2G4w8U2MoNs",
+    4: "QmRUMZtRrst5GTP7Xzi1pRnYhh4J4erAdKKWscApnmGLRc"
+};
 
 export const TOKENS = [
     {
