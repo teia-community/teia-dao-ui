@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { NETWORK } from '../constants';
+import { NETWORK, IPFS_UPLOAD_PROXY } from '../constants';
 
 
 // Returns the user address
@@ -105,6 +105,13 @@ export async function getCommunityVotes(community, representativesVotesBigmap, n
     votes?.forEach(vote => communityVotes[vote.key.nat] = vote.value);
 
     return communityVotes;
+}
+
+// Uploads a file to the ipfs proxy
+export async function uploadFileToIPFSProxy(file) {
+    const form_data = new FormData();
+    form_data.append('asset', file);
+    return await axios.post(IPFS_UPLOAD_PROXY + '/single', form_data, { headers: { 'Content-Type': 'multipart/form-data' } });
 }
 
 // Transforms a string to hex bytes

@@ -1,32 +1,31 @@
 
-export const NETWORK = 'ithacanet';
+export const NETWORK = 'ghostnet';
 
 export const DAO_CONTRACT_ADDRESS = 'KT1Qsh7dr3gzgL9autYsxtCHukq9h1ifJctp';
 
-export const TOKEN_DROP_CONTRACT_ADDRESS = 'KT1RAh5JrEhSDCT3cUGfAdW1tE2P7BnNcRv9';
+export const TOKEN_DROP_CONTRACT_ADDRESS = 'KT1NhaMvktjR89DcdNw6gYbtW9nXnivn65uq';
 
-export const RPC_NODE = 'https://ithacanet.ecadinfra.com';
+export const RPC_NODE = 'https://ghostnet.ecadinfra.com';
 
-export const IPFS_CLIENT = 'https://ipfs.infura.io:5001/api/v0';
+export const IPFS_UPLOAD_PROXY = 'https://ipfsproxy.teia.rocks';
 
-export const IPFS_GATEWAY = 'https://infura-ipfs.io/ipfs/';
+export const IPFS_GATEWAY = 'https://ipfs.io/ipfs/';
 
 export const TOKEN_DECIMALS = 1000000;
 
-export const DISTRIBUTION_MAPPING_IPFS_PATH = "QmPhMyDQEksUpyrstBcgZpwzNSoSJi4scy3JjRwiXeJzgb";
+export const DISTRIBUTION_MAPPING_IPFS_PATH = "Qmbv2YNgE4c32JMsKGiEpyZKdoTgXzvtLmBwmmNsGriKLv";
 
 export const MERKLE_DATA_IPFS_PATHS = {
-    0: "QmScM6gEbYBVzSqMTZiki3oDmYaAnakZHDeorbfrvieDYQ",
-    1: "QmPNMSFux3Z7iWv6zdsBZ9t16unQksh5UqNQpNKu35m8M2",
-    2: "QmRhz4dcU5HCzoYf1pXBrWFGAFLdNTdaRzK2wjwXMMETas",
-    3: "Qmb5cAFkc4JkgVZA5Y5q9aJCqWpUPtjuheu2G4w8U2MoNs",
-    4: "QmRUMZtRrst5GTP7Xzi1pRnYhh4J4erAdKKWscApnmGLRc"
+    0: "QmZCAYoZkpE3Q4Fk5rGQX4BNLTKJ3aHFwRzQWz3jtB4YfH",
+    1: "QmQ9C2VAHBiotkiXf7DpqH66tddpdBPUMK7szcQiUEw7R8",
+    2: "QmX1T1V78TJXYbbiQJxvdCGDAJjGD7TxfxuWj9EJDA1Y6k",
+    3: "QmYnrj9D3CN66QBdKNSC5Ls2dvchqhKwB1Xhyof7xPJoH8"
 };
 
 export const TOKENS = [
     {
         name: 'TEIA DAO tokens',
-        fa2: 'KT1PA5vDBff1Tg7sSe8Xehmz3RbknWA4NJTX',
+        fa2: 'KT1Bdh3NcpSnTy9kPGQLzBr9u51KHfPYqCnN',
         multiasset: false,
         decimals: TOKEN_DECIMALS,
         website: undefined

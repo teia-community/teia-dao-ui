@@ -3,11 +3,10 @@ import { TezosToolkit } from '@taquito/taquito';
 import { BeaconWallet } from '@taquito/beacon-wallet';
 import { Parser } from '@taquito/michel-codec';
 import { validateAddress } from '@taquito/utils';
-import { create } from 'ipfs-http-client';
 import {
     NETWORK, DAO_CONTRACT_ADDRESS, TOKEN_DROP_CONTRACT_ADDRESS,
     DISTRIBUTION_MAPPING_IPFS_PATH, MERKLE_DATA_IPFS_PATHS, RPC_NODE,
-    IPFS_CLIENT, IPFS_GATEWAY
+    IPFS_GATEWAY
 } from '../constants';
 import { InformationMessage, ConfirmationMessage, ErrorMessage } from './messages';
 import * as utils from './utils';
@@ -24,9 +23,6 @@ const wallet = new BeaconWallet({
 
 // Pass the wallet to the tezos toolkit
 tezos.setWalletProvider(wallet);
-
-// Create an instance of the IPFS client
-const ipfsClient = create(IPFS_CLIENT);
 
 // Create the DAO context
 export const DaoContext = createContext();
@@ -556,14 +552,14 @@ export class DaoContextProvider extends React.Component {
 
                 // Upload the file to IPFS
                 console.log(`Uploading ${file.name} to ipfs...`);
-                const added = await ipfsClient.add(file)
+                const added = await utils.uploadFileToIPFSProxy(file)
                     .catch(error => console.log(`Error while uploading ${file.name} to ipfs:`, error));
 
                 // Remove the information message
                 if (displayUploadInformation) this.state.setInformationMessage(undefined);
 
                 // Return the IPFS path
-                return added?.path;
+                return added?.data.cid;
             },
 
             // Downloads a file from ipfs
