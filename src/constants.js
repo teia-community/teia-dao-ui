@@ -13,13 +13,18 @@ export const IPFS_GATEWAY = 'https://ipfs.io/ipfs/';
 
 export const TOKEN_DECIMALS = 1000000;
 
-export const DISTRIBUTION_MAPPING_IPFS_PATH = "Qmbv2YNgE4c32JMsKGiEpyZKdoTgXzvtLmBwmmNsGriKLv";
+export const DISTRIBUTION_MAPPING_IPFS_PATH = "QmXDnvkw5ZxNQKKtNaYyve5JuCeM8PfxRM9iAZCi84JKpN";
 
 export const MERKLE_DATA_IPFS_PATHS = {
-    0: "QmZCAYoZkpE3Q4Fk5rGQX4BNLTKJ3aHFwRzQWz3jtB4YfH",
-    1: "QmQ9C2VAHBiotkiXf7DpqH66tddpdBPUMK7szcQiUEw7R8",
-    2: "QmX1T1V78TJXYbbiQJxvdCGDAJjGD7TxfxuWj9EJDA1Y6k",
-    3: "QmYnrj9D3CN66QBdKNSC5Ls2dvchqhKwB1Xhyof7xPJoH8"
+    0: "QmR3tiFDi8vgTdvR98jS8jLn2No8EheMG6WTnpbzbupvZm",
+    1: "QmWG2jqiHXFk6Ub7xY7TtjYomxern3SNXuCDVxVeFc88iA",
+    2: "QmZ6P44rhTMxKHqADcW27quQPgvs6h1YTQaz1hS8J3FggF",
+    3: "Qmbm99hPZBQKg5wUhzYTuQUrit5eDgvytqU8J17kpcC71T",
+    4: "QmVBQjr7m25MgF2S7BkmNMtzVNfSuWCaxsYJMXkA7PNhKu",
+    5: "QmTi6E5HJJGZrwKkvBRYMHx2DaVD9mij9rm5cSyDVWv64f",
+    6: "QmbZsvCDiGv4xWeLtMf1wPxjogpvLjaKLwdZe5xQezUWUS",
+    7: "QmbCvvyP2s6nqq1cCW9H617jRGEYoZkV3SoJHCS9sJmsNU",
+    8: "QmRhr7m6zBtU1YFNcLMo34jQVUFdamG3BCGCFjA9AwBEnK"
 };
 
 export const TOKENS = [
