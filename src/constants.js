@@ -1,7 +1,7 @@
 
 export const NETWORK = 'ghostnet';
 
-export const DAO_CONTRACT_ADDRESS = 'KT1Qsh7dr3gzgL9autYsxtCHukq9h1ifJctp';
+export const DAO_CONTRACT_ADDRESS = 'KT1PnfY7BdCKyu4bCb5Ufpidv6wYGsV2UfSt';
 
 export const TOKEN_DROP_CONTRACT_ADDRESS = 'KT1NhaMvktjR89DcdNw6gYbtW9nXnivn65uq';
 
