@@ -404,7 +404,8 @@ function ProposalVotesSummary(props) {
     let abstainVotes = parseInt(props.proposal.token_votes.abstain);
 
     if (props.proposal.representatives_votes.total > 0) {
-        const representativesTotalVotes = Math.floor(props.proposal.quorum * proposalGovernanceParameters.representatives_share / 100);
+        const share = Math.min(proposalGovernanceParameters.representatives_share, props.proposal.representatives_votes.total * proposalGovernanceParameters.representative_max_share);
+        const representativesTotalVotes = Math.floor(props.proposal.quorum * share / 100);
         totalVotes += representativesTotalVotes;
         positiveVotes += Math.floor(representativesTotalVotes * props.proposal.representatives_votes.positive / props.proposal.representatives_votes.total);
         negativeVotes += Math.floor(representativesTotalVotes * props.proposal.representatives_votes.negative / props.proposal.representatives_votes.total);

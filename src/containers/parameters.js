@@ -48,6 +48,7 @@ export function Parameters() {
                     <li>Required quorum: {storage?.quorum / voteScaling} weighted votes</li>
                     <li>Percentage for supermajority: {currentGovernanceParameters?.supermajority}% positive votes</li>
                     <li>Representatives vote share: {currentGovernanceParameters?.representatives_share}% of the quorum</li>
+                    <li>Representative max vote share: {currentGovernanceParameters?.representative_max_share}% of the quorum</li>
                     <li>Proposal voting period: {currentGovernanceParameters?.vote_period} days</li>
                     <li>Proposal waiting period: {currentGovernanceParameters?.wait_period} days</li>
                     <li>Number of tokens to escrow to submit a proposal: {currentGovernanceParameters?.escrow_amount / TOKEN_DECIMALS} TEIA tokens</li>
