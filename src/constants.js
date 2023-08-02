@@ -3,7 +3,7 @@ export const NETWORK = 'ghostnet';
 
 export const DAO_CONTRACT_ADDRESS = 'KT1PnfY7BdCKyu4bCb5Ufpidv6wYGsV2UfSt';
 
-export const TOKEN_DROP_CONTRACT_ADDRESS = 'KT1C86QiA8gVzUQ2THPUQ42ZYWxok61Vo3wf';
+export const TOKEN_DROP_CONTRACT_ADDRESS = 'KT1Fw7aq7hE5Q3ysEPdTDeiE7LfAWs39Peew';
 
 export const RPC_NODE = 'https://ghostnet.ecadinfra.com';
 
