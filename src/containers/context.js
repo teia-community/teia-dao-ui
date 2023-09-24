@@ -4,9 +4,7 @@ import { BeaconWallet } from '@taquito/beacon-wallet';
 import { Parser } from '@taquito/michel-codec';
 import { validateAddress } from '@taquito/utils';
 import {
-    NETWORK, DAO_CONTRACT_ADDRESS, TOKEN_DROP_CONTRACT_ADDRESS,
-    DISTRIBUTION_MAPPING_IPFS_PATH, MERKLE_DATA_IPFS_PATHS, RPC_NODE,
-    IPFS_GATEWAY
+    NETWORK, DAO_CONTRACT_ADDRESS, RPC_NODE, IPFS_GATEWAY
 } from '../constants';
 import { InformationMessage, ConfirmationMessage, ErrorMessage } from './messages';
 import * as utils from './utils';
@@ -125,19 +123,6 @@ export class DaoContextProvider extends React.Component {
                 this.setState({ tokenContract: tokenContract });
 
                 return tokenContract;
-            },
-
-            // Returns the DAO token drop contract reference
-            getDropContract: async () => {
-                if (this.state.dropContract) {
-                    return this.state.dropContract;
-                }
-
-                console.log('Accessing the DAO token drop contract...');
-                const dropContract = await utils.getContract(tezos, TOKEN_DROP_CONTRACT_ADDRESS);
-                this.setState({ dropContract: dropContract });
-
-                return dropContract;
             },
 
             // Connects the user wallet
@@ -498,44 +483,6 @@ export class DaoContextProvider extends React.Component {
                     tokenBalance: tokenBalance,
                     governanceParameters: governanceParameters,
                     proposals: proposals
-                });
-            },
-
-            // Claims the DAO tokens
-            claimTokens: async () => {
-                // Get the drop contract reference
-                const dropContract = await this.state.getDropContract();
-
-                // Return if the drop contract reference is not available
-                if (!dropContract) return;
-
-                // Download the distribution file mapping file
-                const mapping = await this.state.downloadFileFromIpfs(DISTRIBUTION_MAPPING_IPFS_PATH);
-
-                // Check that the user address is included in the mapping data
-                if (!(this.state.userAddress in mapping)) {
-                    this.state.setErrorMessage('Unfortunately you cannot claim any DAO tokens');
-                    return;
-                }
-
-                // Download the Merkle data
-                const merkleDataPath = MERKLE_DATA_IPFS_PATHS[mapping[this.state.userAddress]];
-                const merkleData = await this.state.downloadFileFromIpfs(merkleDataPath);
-
-                // Send the claim operation
-                console.log('Sending the claim operation to the token drop contract...');
-                const userMerkleData = merkleData[this.state.userAddress];
-                const operation = await dropContract.methods.claim(userMerkleData.proof, userMerkleData.leafDataPacked).send()
-                    .catch(error => console.log('Error while sending the claim operation:', error));
-
-                // Wait for the confirmation
-                await this.state.confirmOperation(operation);
-
-                // Update the user token balance
-                const storage = this.state.storage;
-                const userTokenBalance = await utils.getTokenBalance(storage.token, 0, this.state.userAddress);
-                this.setState({
-                    userTokenBalance: userTokenBalance
                 });
             },
 
